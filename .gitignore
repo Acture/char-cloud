@@ -21,7 +21,6 @@ target/
 #.idea/
 
 /target
-python
 
 *.svg
 *.png
