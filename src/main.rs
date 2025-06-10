@@ -11,7 +11,7 @@ use crate::mask::{calculate_auto_font_size, CanvasConfigBuilder, FontSize, Shape
 use clap::Parser;
 use env_logger::Builder;
 use fontdue::Font;
-
+use log::debug;
 
 fn main() {
 	let cli_args = CliArgs::parse();
@@ -34,6 +34,7 @@ fn main() {
 
 	let font = match cli_args.font_path {
 		Some(path) => {
+			debug!("Loading font from path: {:?}", path);
 			utils::load_font_from_file(path)
 				.expect("Failed to load font from specified path")
 		}
@@ -49,19 +50,19 @@ fn main() {
 	let canvas_config = CanvasConfigBuilder::default()
 		.width(cli_args.canva_size.0)
 		.height(cli_args.canva_size.1)
-		.padding(cli_args.canva_padding)
+		.margin(cli_args.canva_margin)
 		.build()
 		.expect("Failed to create <canvas> configuration");
 
 	let shape_config = match cli_args.shape_size {
-		Some(size) => {
+		FontSize::Fixed(size) => {
 			ShapeConfigBuilder::default()
 				.text(cli_args.shape_text)
 				.font(&font)
 				.font_size(FontSize::Fixed(size))
 				.build()
 		}
-		None => {
+		FontSize::AutoFit => {
 			let font_size = calculate_auto_font_size(&canvas_config, &cli_args.shape_text, &font);
 			
 			ShapeConfigBuilder::default()
@@ -86,8 +87,8 @@ fn main() {
 		.canva_config(canvas_config)
 		.shape_config(shape_config)
 		.fill_config(fill_config)
-		.ratio_threshold(0.5)
-		.max_try_count(1000)
+		.ratio_threshold(cli_args.threshold)
+		.max_try_count(cli_args.max_tries)
 		.build()
 		.expect("Failed to create <draw> configuration");
 		
@@ -98,9 +99,13 @@ fn main() {
 		log::error!("Generated SVG is empty, please check your configuration.");
 		return;
 	}
+	
+	log::info!("SVG generated successfully, saving to file...");
+	
+	let output_path = cli_args.output;
 
 	svg::save(
-		"test_output.svg",
+		output_path,
 		&svg,
 	).expect("Failed to save SVG file");
 }

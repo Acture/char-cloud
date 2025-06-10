@@ -11,7 +11,7 @@ pub struct CanvasConfig {
 	#[builder(default = "1080")]
 	pub height: usize,
 	#[builder(default = "10")]
-	pub padding: usize,
+	pub margin: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -76,8 +76,8 @@ pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: Fo
 
 pub fn calculate_auto_font_size<S: AsRef<str>>(canvas_config: &CanvasConfig, text:S, font: &Font  ) -> usize {
 
-	let available_width = canvas_config.width.saturating_sub(2 * canvas_config.padding);
-	let available_height = canvas_config.height.saturating_sub(2 * canvas_config.padding);
+	let available_width = canvas_config.width.saturating_sub(2 * canvas_config.margin);
+	let available_height = canvas_config.height.saturating_sub(2 * canvas_config.margin);
 
 	let mut low = 1;
 	let mut high = available_height;
@@ -114,8 +114,8 @@ pub fn calculate_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool
 	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
 	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
 
-	let offset_x = canvas.padding + (width.saturating_sub(2 * canvas.padding).saturating_sub(total_width)) / 2;
-	let offset_y = canvas.padding + (height.saturating_sub(2 * canvas.padding).saturating_sub(max_height)) / 2;
+	let offset_x = canvas.margin + (width.saturating_sub(2 * canvas.margin).saturating_sub(total_width)) / 2;
+	let offset_y = canvas.margin + (height.saturating_sub(2 * canvas.margin).saturating_sub(max_height)) / 2;
 
 	let mut current_x = offset_x;
 	for (c, metrics) in shape.text.chars().zip(metrics_list.iter()) {
@@ -170,7 +170,7 @@ mod tests {
 		let canvas = CanvasConfig {
 			width: 1920,
 			height: 1080,
-			padding: 10,
+			margin: 10,
 		};
 
 		let mut shape = ShapeConfig {

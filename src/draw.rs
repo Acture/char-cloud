@@ -200,7 +200,7 @@ use crate::mask::{calculate_auto_font_size, FontSize, ShapeConfig};
 		let canvas_config = CanvasConfig {
 			width: 1920,
 			height: 1080,
-			padding: 10,
+			margin: 10,
 		};
 
 		let font_size = calculate_auto_font_size(&canvas_config, &shape_config.text, &font);
