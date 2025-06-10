@@ -22,3 +22,6 @@ target/
 
 /target
 python
+
+*.svg
+*.png
