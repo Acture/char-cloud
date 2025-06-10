@@ -2,6 +2,12 @@
 name = "char-cloud"
 version = "0.1.0"
 edition = "2024"
+authors = ["Acture <acturea@gmail.com>"]
+description = "A command-line tool to generate word clouds from text files."
+readme = "README.md"
+repository = "https://github.com/acture/char-cloud"
+license = "AGPL-3.0"
+keywords = ["wordcloud","charcloud","cli", "svg", "visualization"]
 
 [dependencies]
 clap = { version = "4.5.40", features = ["default", "derive", "usage", "color", "help", "suggestions", "wrap_help"] }
