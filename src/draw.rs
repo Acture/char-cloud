@@ -16,6 +16,7 @@ pub struct FillConfig {
 	pub font: Font,
 	pub font_size_range: RangeInclusive<usize>,
 	pub padding: usize,
+	pub colors: Vec<String>,
 }
 
 #[derive(Debug, Clone, Builder)]
@@ -44,13 +45,13 @@ fn get_available_positions(mask_tensor: &Array2<bool>) -> Vec<(usize, usize)> {
 		.collect()
 }
 
-fn create_text_element(x: usize, y: usize, word: &str, font: &Font, font_size: usize) -> svg::node::element::Text {
+fn create_text_element(x: usize, y: usize, word: &str, font: &Font, font_size: usize, color: &str) -> svg::node::element::Text {
 	svg::node::element::Text::new(word)
 		.set("x", x)
 		.set("y", y)
 		.set("font-family", utils::get_font_family_name(font))
 		.set("font-size", font_size)
-		.set("fill", "black")
+		.set("fill", color)
 }
 
 fn update_mask(
@@ -162,7 +163,8 @@ pub fn draw(config: &DrawConfig) -> SVG {
 
 		let (font_size, text_width, text_height) = chosen_font.expect("Failed to find font size");
 		debug!("Filling word '{}' at position ({}, {}) with font size {}", word, x, y, font_size);
-		canvas = canvas.add(create_text_element(x, y, word, &config.fill_config.font, font_size));
+		let color = config.fill_config.colors.iter().choose(&mut rng).expect("No colors available");
+		canvas = canvas.add(create_text_element(x, y, word, &config.fill_config.font, font_size, color));
 		// 更新可用区域
 		update_mask(&mut mask_tensor, (y, x), (text_width, text_height));
 
@@ -206,6 +208,14 @@ use crate::mask::{calculate_auto_font_size, FontSize, ShapeConfig};
 			font,
 			font_size_range: 10usize..=30usize,
 			padding: 0,
+			colors: vec![
+				"#FF5733".to_string(), // 红色
+				"#33FF57".to_string(), // 绿色
+				"#3357FF".to_string(), // 蓝色
+				"#FFFF33".to_string(), // 黄色
+				"#FF33FF".to_string(), // 品红
+				"#33FFFF".to_string(), // 青色
+			],
 		};
 		let config = DrawConfig {
 			canva_config: canvas_config,

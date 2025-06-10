@@ -40,6 +40,14 @@ fn main() {
 		font,
 		font_size_range: 10usize..=30usize,
 		padding: 0,
+		colors: vec![
+			"#FF5733".to_string(), // 红色
+			"#33FF57".to_string(), // 绿色
+			"#3357FF".to_string(), // 蓝色
+			"#FFFF33".to_string(), // 黄色
+			"#FF33FF".to_string(), // 品红
+			"#33FFFF".to_string(), // 青色
+		],
 	};
 	let config = DrawConfig {
 		canva_config: canvas_config,
