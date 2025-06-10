@@ -2,7 +2,9 @@ mod mask;
 mod draw;
 mod utils;
 mod args;
+mod embedded_fonts;
 
+use crate::embedded_fonts::NOTO_SANS_SC_REGULAR;
 use crate::args::CliArgs;
 use crate::draw::{draw, DrawConfigBuilder, FillConfigBuilder};
 use crate::mask::{calculate_auto_font_size, CanvasConfigBuilder, FontSize, ShapeConfigBuilder};
@@ -10,7 +12,6 @@ use clap::Parser;
 use env_logger::Builder;
 use fontdue::Font;
 
-static DEFAULT_FONT_DATA: &[u8] = include_bytes!("../fonts/NotoSansSC-Regular.ttf");
 
 fn main() {
 	let cli_args = CliArgs::parse();
@@ -38,7 +39,7 @@ fn main() {
 		}
 		None => {
 
-			Font::from_bytes(DEFAULT_FONT_DATA.to_vec(), fontdue::FontSettings::default())
+			Font::from_bytes(NOTO_SANS_SC_REGULAR.to_vec(), fontdue::FontSettings::default())
 				.expect("Failed to load default font")
 		}
 	};
