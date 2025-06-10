@@ -7,8 +7,11 @@ use ndarray::Array2;
 #[derive(Debug, Clone, Builder)]
 #[builder(setter(into))]
 pub struct CanvasConfig {
+	#[builder(default = "1920")]
 	pub width: usize,
+	#[builder(default = "1080")]
 	pub height: usize,
+	#[builder(default = "10")]
 	pub padding: usize,
 }
 
@@ -41,6 +44,7 @@ impl From<FontSize> for usize {
 pub struct ShapeConfig {
 	pub text: String,
 	pub font: Font,
+	#[builder(default = "FontSize::AutoFit")]
 	pub font_size: FontSize,
 }
 

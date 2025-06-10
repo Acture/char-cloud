@@ -15,7 +15,9 @@ pub struct FillConfig {
 	pub words: Vec<String>,
 	pub font: Font,
 	pub font_size_range: RangeInclusive<usize>,
+	#[builder(default = "0")]
 	pub padding: usize,
+	#[builder(default = "vec![\"#000000\".to_string()]")]
 	pub colors: Vec<String>,
 }
 
@@ -24,7 +26,9 @@ pub struct DrawConfig {
 	pub canva_config: CanvasConfig,
 	pub shape_config: ShapeConfig,
 	pub fill_config: FillConfig,
+	#[builder(default = "0.5")]
 	pub ratio_threshold: f32,
+	#[builder(default = "1000")]
 	pub max_try_count: usize,
 }
 
