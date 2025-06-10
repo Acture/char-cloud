@@ -18,6 +18,23 @@ pub enum FontSize {
 	AutoFit,
 }
 
+impl From<usize> for FontSize {
+	fn from(size: usize) -> Self {
+		FontSize::Fixed(size)
+	}
+}
+
+impl From<FontSize> for usize {
+	fn from(size: FontSize) -> Self {
+		match size {
+			FontSize::Fixed(size) => size,
+			FontSize::AutoFit => panic!("Cannot convert AutoFit to usize"),
+		}
+	}
+}
+
+
+
 
 #[derive(Debug, Clone, Builder)]
 #[builder(setter(into))]
@@ -26,6 +43,8 @@ pub struct ShapeConfig {
 	pub font: Font,
 	pub font_size: FontSize,
 }
+
+
 
 impl ShapeConfig {
 	pub fn get_font_size(&self) -> usize {
@@ -38,16 +57,18 @@ impl ShapeConfig {
 	}
 
 
-	pub fn calculate_text_size(&self) -> (usize, usize) {
-		let metrics_list: Vec<_> = self.text.chars()
-			.map(|c| self.font.metrics(c, self.get_font_size() as f32))
-			.collect();
 
-		let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
-		let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
+}
 
-		(total_width, max_height)
-	}
+pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: FontSize) -> (usize, usize) {
+	let metrics_list: Vec<_> = string.as_ref().chars()
+		.map(|c| font.metrics(c,usize::from(font_size.clone()) as f32))
+		.collect();
+
+	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
+	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
+
+	(total_width, max_height)
 }
 
 pub fn calculate_auto_font_size(shape_config: &ShapeConfig, canvas_config: &CanvasConfig) -> usize {
@@ -79,16 +100,17 @@ pub fn calculate_auto_font_size(shape_config: &ShapeConfig, canvas_config: &Canv
 }
 
 
-pub fn render_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool> {
+pub fn calculate_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool> {
 	let height = canvas.height;
 	let width = canvas.width;
 	// 创建结果数组
-	let mut result = Array2::from_elem((height, width), false);
-
+	let mut result = Array2::from_elem((height, width), false); // 初始化为 false
+	
+	// 获取字体大小
 	let metrics_list: Vec<_> = shape.text.chars()
 		.map(|c| shape.font.metrics(c, shape.get_font_size() as f32))
 		.collect();
-
+	// 计算总宽度和最大高度
 	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
 	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
 
@@ -104,20 +126,19 @@ pub fn render_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool> {
 		for y in 0..glyph_h {
 			for x in 0..glyph_w {
 				let pixel = bitmap[y * glyph_w + x];
-				if current_x + x < width && offset_y + y < height && pixel > 0 {
+				if current_x + x < width && offset_y + y < height && pixel > 127 {
 					result[[offset_y + y, current_x + x]] = true;
 				}
 			}
 		}
 
-		current_x += metrics.advance_width as usize;
+		current_x += metrics.advance_width.ceil() as usize;
 	}
-
 	result
 }
 
 
-pub fn occupation_map_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+pub fn mask_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
 	let (height, width) = map.dim();
 	let mut image = ImageBuffer::new(width as u32, height as u32);
 
@@ -140,7 +161,7 @@ mod tests {
 
 
 	#[test]
-	fn test_render_mask() {
+	fn test_mask() {
 		// 加载字体数据（使用英文字体避免 fallback 错误）
 		let font_data = std::fs::read("fonts/Roboto-Regular.ttf")
 			.expect("Failed to load font file");
@@ -164,7 +185,7 @@ mod tests {
 		shape.font_size = FontSize::Fixed(font_size);
 
 
-		let mask = render_mask(&canvas, &shape);
+		let mask = calculate_mask(&canvas, &shape);
 
 		// 基本尺寸断言
 		assert_eq!(mask.shape(), &[canvas.height, canvas.width]);
@@ -172,7 +193,7 @@ mod tests {
 		// 遮罩中应有非零像素（即至少有文字绘制）
 		assert!(mask.iter().any(|&x| x), "Mask should contain some occupied pixels");
 
-		let image = occupation_map_to_image(&mask);
+		let image = mask_to_image(&mask);
 		image.save("test_output_mask.png").expect("Failed to save test mask image");
 	}
 }
