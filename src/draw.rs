@@ -193,8 +193,8 @@ use crate::mask::{calculate_auto_font_size, FontSize, ShapeConfig};
 		let font = utils::load_font_from_file("fonts/Roboto-Regular.ttf")
 			.expect("Failed to load font");
 		let mut shape_config = ShapeConfig {
-			text: "测试".to_string(),
-			font: font.clone(),
+			text: "测试绘图".to_string(),
+			font: &font,
 			font_size: FontSize::AutoFit,
 		};
 		let canvas_config = CanvasConfig {
@@ -203,30 +203,23 @@ use crate::mask::{calculate_auto_font_size, FontSize, ShapeConfig};
 			padding: 10,
 		};
 
-		let font_size = calculate_auto_font_size(&shape_config, &canvas_config);
+		let font_size = calculate_auto_font_size(&canvas_config, &shape_config.text, &font);
 		shape_config.font_size = FontSize::Fixed(font_size);
 
 
 		let fill_config = FillConfig {
-			words: vec!["测试".to_string(), "绘图".to_string()],
-			font,
-			font_size_range: 10usize..=30usize,
+			words: vec!["示例".to_string(), "测试".to_string(), "绘图".to_string()],
+			font: &font,
+			font_size_range: 10..=30,
 			padding: 0,
-			colors: vec![
-				"#FF5733".to_string(), // 红色
-				"#33FF57".to_string(), // 绿色
-				"#3357FF".to_string(), // 蓝色
-				"#FFFF33".to_string(), // 黄色
-				"#FF33FF".to_string(), // 品红
-				"#33FFFF".to_string(), // 青色
-			],
+			colors: vec!["#000000".to_string(), "#FF0000".to_string(), "#00FF00".to_string(), "#0000FF".to_string()],
 		};
 		let config = DrawConfig {
 			canva_config: canvas_config,
 			shape_config,
 			fill_config,
-			ratio_threshold: 0.5,
-			max_try_count: 1000,
+			ratio_threshold: 0.1,
+			max_try_count: 10,
 		};
 
 		let svg = draw(&config);

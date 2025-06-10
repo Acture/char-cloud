@@ -176,11 +176,11 @@ mod tests {
 
 		let mut shape = ShapeConfig {
 			text: "BRICS".to_string(), // 建议测试英文以确保字体支持
-			font,
+			font: &font,
 			font_size: FontSize::AutoFit,
 		};
 
-		let font_size = calculate_auto_font_size(&shape, &canvas);
+		let font_size = calculate_auto_font_size(&canvas, &shape.text, &font);
 
 		shape.font_size = FontSize::Fixed(font_size);
 
