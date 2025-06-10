@@ -3,7 +3,6 @@ use fontdue::Font;
 use image::{ImageBuffer, Rgba};
 use ndarray::Array2;
 
-
 #[derive(Debug, Clone, Builder)]
 #[builder(setter(into))]
 pub struct CanvasConfig {
@@ -41,16 +40,16 @@ impl From<FontSize> for usize {
 
 #[derive(Debug, Clone, Builder)]
 #[builder(setter(into))]
-pub struct ShapeConfig {
+pub struct ShapeConfig<'a> {
 	pub text: String,
-	pub font: Font,
+	pub font: &'a Font,
 	#[builder(default = "FontSize::AutoFit")]
 	pub font_size: FontSize,
 }
 
 
 
-impl ShapeConfig {
+impl ShapeConfig<'_> {
 	pub fn get_font_size(&self) -> usize {
 		match self.font_size {
 			FontSize::Fixed(size) => size,
@@ -75,10 +74,7 @@ pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: Fo
 	(total_width, max_height)
 }
 
-pub fn calculate_auto_font_size(shape_config: &ShapeConfig, canvas_config: &CanvasConfig) -> usize {
-	if let FontSize::Fixed(size) = shape_config.font_size {
-		return size; // 如果已经计算过大小，直接返回
-	}
+pub fn calculate_auto_font_size<S: AsRef<str>>(canvas_config: &CanvasConfig, text:S, font: &Font  ) -> usize {
 
 	let available_width = canvas_config.width.saturating_sub(2 * canvas_config.padding);
 	let available_height = canvas_config.height.saturating_sub(2 * canvas_config.padding);
@@ -88,8 +84,8 @@ pub fn calculate_auto_font_size(shape_config: &ShapeConfig, canvas_config: &Canv
 	let mut best_size = low;
 	while high > low {
 		let mid = (low + high) / 2;
-		let metrics = shape_config.text.chars()
-			.map(|c| shape_config.font.metrics(c, mid as f32))
+		let metrics = text.as_ref().chars()
+			.map(|c| font.metrics(c, mid as f32))
 			.collect::<Vec<_>>();
 		let total_width = metrics.iter().map(|m| m.advance_width).sum::<f32>() as usize;
 		let max_height = metrics.iter().map(|m| m.height).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0) as usize;

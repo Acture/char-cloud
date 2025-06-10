@@ -4,11 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-derive_builder = "0.20.2"
-env_logger = "0.11.8"
-fontdue = "0.9.3"
-image = "0.25.6"
-log = "0.4.27"
-ndarray = "0.16.1"
-rand = "0.9.1"
-svg = "0.18.0"
+clap = { version = "4.5.40", features = ["default", "derive", "usage", "color", "help", "suggestions", "wrap_help"] }
+derive_builder = { version = "0.20.2", features = ["default"] }
+env_logger = { version = "0.11.8", features = ["default"] }
+fontdue = { version = "0.9.3", features = ["default"] }
+image = { version = "0.25.6", features = ["default"] }
+log = { version = "0.4.27" }
+ndarray = { version = "0.16.1", features = ["default"] }
+rand = { version = "0.9.1", features = ["default"] }
+svg = { version = "0.18.0" }

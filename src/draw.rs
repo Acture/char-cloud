@@ -11,9 +11,9 @@ use svg::Document;
 
 
 #[derive(Debug, Clone, Builder)]
-pub struct FillConfig {
+pub struct FillConfig<'a> {
 	pub words: Vec<String>,
-	pub font: Font,
+	pub font: &'a Font,
 	pub font_size_range: RangeInclusive<usize>,
 	#[builder(default = "0")]
 	pub padding: usize,
@@ -22,10 +22,10 @@ pub struct FillConfig {
 }
 
 #[derive(Debug, Clone, Builder)]
-pub struct DrawConfig {
+pub struct DrawConfig<'a> {
 	pub canva_config: CanvasConfig,
-	pub shape_config: ShapeConfig,
-	pub fill_config: FillConfig,
+	pub shape_config: ShapeConfig<'a>,
+	pub fill_config: FillConfig<'a>,
 	#[builder(default = "0.5")]
 	pub ratio_threshold: f32,
 	#[builder(default = "1000")]

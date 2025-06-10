@@ -1,15 +1,28 @@
 mod mask;
 mod draw;
 mod utils;
+mod args;
 
-use std::path::PathBuf;
+use crate::args::CliArgs;
+use crate::draw::{draw, DrawConfigBuilder, FillConfigBuilder};
+use crate::mask::{calculate_auto_font_size, CanvasConfigBuilder, FontSize, ShapeConfigBuilder};
+use clap::Parser;
 use env_logger::Builder;
-use crate::draw::{draw, DrawConfig, FillConfig};
-use crate::mask::{calculate_auto_font_size, CanvasConfig, FontSize, ShapeConfig};
+use fontdue::Font;
+
+static DEFAULT_FONT_DATA: &[u8] = include_bytes!("../fonts/NotoSansSC-Regular.ttf");
 
 fn main() {
+	let cli_args = CliArgs::parse();
+	
+	let log_level = if cli_args.verbose {
+		log::LevelFilter::Debug
+	} else {
+		log::LevelFilter::Info
+	};
+
 	Builder::from_default_env()
-		.filter_level(log::LevelFilter::Debug)
+		.filter_level(log_level)
 		.format_level( true)
 		.format_timestamp_secs()
 		.format_module_path(true)
@@ -18,47 +31,72 @@ fn main() {
 		.format_indent(Some(4))
 		.init();
 
-	let font = utils::load_font_from_file(PathBuf::from("fonts/NotoSansSC-Regular.ttf"))
-		.expect("Failed to load font");
-	let mut shape_config = ShapeConfig {
-		text:"测试".to_string(), 
-		font: font.clone(),
-		font_size: FontSize::AutoFit,
-	};
-	let canvas_config = CanvasConfig {
-		width: 1920,
-		height: 1080,
-		padding: 10,
-	};
+	let font = match cli_args.font_path {
+		Some(path) => {
+			utils::load_font_from_file(path)
+				.expect("Failed to load font from specified path")
+		}
+		None => {
 
-	let font_size = calculate_auto_font_size(&shape_config, &canvas_config);
-	shape_config.font_size = FontSize::Fixed(font_size);
+			Font::from_bytes(DEFAULT_FONT_DATA.to_vec(), fontdue::FontSettings::default())
+				.expect("Failed to load default font")
+		}
+	};
+		
 
 
-	let fill_config = FillConfig {
-		words: vec!["测试".to_string(), "绘图".to_string()],
-		font,
-		font_size_range: 10usize..=30usize,
-		padding: 0,
-		colors: vec![
-			"#FF5733".to_string(), // 红色
-			"#33FF57".to_string(), // 绿色
-			"#3357FF".to_string(), // 蓝色
-			"#FFFF33".to_string(), // 黄色
-			"#FF33FF".to_string(), // 品红
-			"#33FFFF".to_string(), // 青色
-		],
-	};
-	let config = DrawConfig {
-		canva_config: canvas_config,
-		shape_config,
-		fill_config,
-		ratio_threshold: 0.5,
-		max_try_count: 1000,
-	};
+	let canvas_config = CanvasConfigBuilder::default()
+		.width(cli_args.canva_size.0)
+		.height(cli_args.canva_size.1)
+		.padding(cli_args.canva_padding)
+		.build()
+		.expect("Failed to create <canvas> configuration");
 
-	let svg = draw(&config);
-	assert!(!svg.to_string().is_empty());
+	let shape_config = match cli_args.shape_size {
+		Some(size) => {
+			ShapeConfigBuilder::default()
+				.text(cli_args.shape_text)
+				.font(&font)
+				.font_size(FontSize::Fixed(size))
+				.build()
+		}
+		None => {
+			let font_size = calculate_auto_font_size(&canvas_config, &cli_args.shape_text, &font);
+			
+			ShapeConfigBuilder::default()
+				.text(&cli_args.shape_text)
+				.font(&font)
+				.font_size(font_size)
+				.build()
+		}
+	}.expect("Failed to create <shape> configuration");
+
+
+	let fill_config = FillConfigBuilder::default()
+		.words(cli_args.words)
+		.font(&font)
+		.font_size_range(cli_args.word_size_range.0..=cli_args.word_size_range.1)
+		.padding(0)
+		.colors(cli_args.word_colors)
+		.build()
+		.expect("Failed to create <fill> configuration");
+	
+	let draw_config = DrawConfigBuilder::default()
+		.canva_config(canvas_config)
+		.shape_config(shape_config)
+		.fill_config(fill_config)
+		.ratio_threshold(0.5)
+		.max_try_count(1000)
+		.build()
+		.expect("Failed to create <draw> configuration");
+		
+
+	let svg = draw(&draw_config);
+	
+	if svg.to_string().is_empty() {
+		log::error!("Generated SVG is empty, please check your configuration.");
+		return;
+	}
 
 	svg::save(
 		"test_output.svg",
