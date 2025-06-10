@@ -1,0 +1,178 @@
+use derive_builder::Builder;
+use fontdue::Font;
+use image::{ImageBuffer, Rgba};
+use ndarray::Array2;
+
+
+#[derive(Debug, Clone, Builder)]
+#[builder(setter(into))]
+pub struct CanvasConfig {
+	pub width: usize,
+	pub height: usize,
+	pub padding: usize,
+}
+
+#[derive(Debug, Clone)]
+pub enum FontSize {
+	Fixed(usize),
+	AutoFit,
+}
+
+
+#[derive(Debug, Clone, Builder)]
+#[builder(setter(into))]
+pub struct ShapeConfig {
+	pub text: String,
+	pub font: Font,
+	pub font_size: FontSize,
+}
+
+impl ShapeConfig {
+	pub fn get_font_size(&self) -> usize {
+		match self.font_size {
+			FontSize::Fixed(size) => size,
+			FontSize::AutoFit => {
+				panic!("Font size is set to AutoFit but no size has been calculated yet. Call calculate_auto_fit_size first.");
+			}
+		}
+	}
+
+
+	pub fn calculate_text_size(&self) -> (usize, usize) {
+		let metrics_list: Vec<_> = self.text.chars()
+			.map(|c| self.font.metrics(c, self.get_font_size() as f32))
+			.collect();
+
+		let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
+		let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
+
+		(total_width, max_height)
+	}
+}
+
+pub fn calculate_auto_font_size(shape_config: &ShapeConfig, canvas_config: &CanvasConfig) -> usize {
+	if let FontSize::Fixed(size) = shape_config.font_size {
+		return size; // 如果已经计算过大小，直接返回
+	}
+
+	let available_width = canvas_config.width.saturating_sub(2 * canvas_config.padding);
+	let available_height = canvas_config.height.saturating_sub(2 * canvas_config.padding);
+
+	let mut low = 1;
+	let mut high = available_height;
+	let mut best_size = low;
+	while high > low {
+		let mid = (low + high) / 2;
+		let metrics = shape_config.text.chars()
+			.map(|c| shape_config.font.metrics(c, mid as f32))
+			.collect::<Vec<_>>();
+		let total_width = metrics.iter().map(|m| m.advance_width).sum::<f32>() as usize;
+		let max_height = metrics.iter().map(|m| m.height).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0) as usize;
+		if total_width <= available_width && max_height <= available_height {
+			best_size = mid;
+			low = mid + 1;
+		} else {
+			high = mid - 1;
+		}
+	}
+	best_size
+}
+
+
+pub fn render_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool> {
+	let height = canvas.height;
+	let width = canvas.width;
+	// 创建结果数组
+	let mut result = Array2::from_elem((height, width), false);
+
+	let metrics_list: Vec<_> = shape.text.chars()
+		.map(|c| shape.font.metrics(c, shape.get_font_size() as f32))
+		.collect();
+
+	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
+	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
+
+	let offset_x = canvas.padding + (width.saturating_sub(2 * canvas.padding).saturating_sub(total_width)) / 2;
+	let offset_y = canvas.padding + (height.saturating_sub(2 * canvas.padding).saturating_sub(max_height)) / 2;
+
+	let mut current_x = offset_x;
+	for (c, metrics) in shape.text.chars().zip(metrics_list.iter()) {
+		let (_, bitmap) = shape.font.rasterize(c, shape.get_font_size() as f32);
+		let glyph_w = metrics.width;
+		let glyph_h = metrics.height;
+
+		for y in 0..glyph_h {
+			for x in 0..glyph_w {
+				let pixel = bitmap[y * glyph_w + x];
+				if current_x + x < width && offset_y + y < height && pixel > 0 {
+					result[[offset_y + y, current_x + x]] = true;
+				}
+			}
+		}
+
+		current_x += metrics.advance_width as usize;
+	}
+
+	result
+}
+
+
+pub fn occupation_map_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+	let (height, width) = map.dim();
+	let mut image = ImageBuffer::new(width as u32, height as u32);
+
+	for ((y, x), &occupied) in map.indexed_iter() {
+		image.put_pixel(x as u32, y as u32,
+						if occupied {
+							Rgba([255, 255, 255, 255])  // 白色，完全不透明
+						} else {
+							Rgba([0, 0, 0, 0])  // 完全透明
+						},
+		);
+	}
+
+	image
+}
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use fontdue::FontSettings;
+
+
+	#[test]
+	fn test_render_mask() {
+		// 加载字体数据（使用英文字体避免 fallback 错误）
+		let font_data = std::fs::read("fonts/Roboto-Regular.ttf")
+			.expect("Failed to load font file");
+		let font = Font::from_bytes(font_data, FontSettings::default())
+			.expect("Failed to parse font");
+
+		let canvas = CanvasConfig {
+			width: 1920,
+			height: 1080,
+			padding: 10,
+		};
+
+		let mut shape = ShapeConfig {
+			text: "BRICS".to_string(), // 建议测试英文以确保字体支持
+			font,
+			font_size: FontSize::AutoFit,
+		};
+
+		let font_size = calculate_auto_font_size(&shape, &canvas);
+
+		shape.font_size = FontSize::Fixed(font_size);
+
+
+		let mask = render_mask(&canvas, &shape);
+
+		// 基本尺寸断言
+		assert_eq!(mask.shape(), &[canvas.height, canvas.width]);
+
+		// 遮罩中应有非零像素（即至少有文字绘制）
+		assert!(mask.iter().any(|&x| x), "Mask should contain some occupied pixels");
+
+		let image = occupation_map_to_image(&mask);
+		image.save("test_output_mask.png").expect("Failed to save test mask image");
+	}
+}
