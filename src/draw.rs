@@ -184,7 +184,7 @@ use crate::mask::{calculate_auto_font_size, FontSize, ShapeConfig};
 
 	#[test]
 	fn test_draw() {
-		let font = utils::load_font_from_file(PathBuf::from("fonts/Roboto-Regular.ttf"))
+		let font = utils::load_font_from_file("fonts/Roboto-Regular.ttf")
 			.expect("Failed to load font");
 		let mut shape_config = ShapeConfig {
 			text: "测试".to_string(),
