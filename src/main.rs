@@ -18,10 +18,10 @@ fn main() {
 		.format_indent(Some(4))
 		.init();
 
-	let font = utils::load_font_from_file(PathBuf::from("fonts/Roboto-Regular.ttf"))
+	let font = utils::load_font_from_file(PathBuf::from("fonts/NotoSansSC-Regular.ttf"))
 		.expect("Failed to load font");
 	let mut shape_config = ShapeConfig {
-		text:"ASBSBSB".to_string(), 
+		text:"测试".to_string(), 
 		font: font.clone(),
 		font_size: FontSize::AutoFit,
 	};
@@ -38,7 +38,7 @@ fn main() {
 	let fill_config = FillConfig {
 		words: vec!["测试".to_string(), "绘图".to_string()],
 		font,
-		font_size_range: (10, 30),
+		font_size_range: 10usize..=30usize,
 		padding: 0,
 	};
 	let config = DrawConfig {
@@ -46,7 +46,7 @@ fn main() {
 		shape_config,
 		fill_config,
 		ratio_threshold: 0.5,
-		try_count: 1000,
+		max_try_count: 1000,
 	};
 
 	let svg = draw(&config);

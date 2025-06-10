@@ -60,13 +60,13 @@ impl ShapeConfig {
 
 }
 
-pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: FontSize) -> (usize, usize) {
+pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: FontSize, padding: usize) -> (usize, usize) {
 	let metrics_list: Vec<_> = string.as_ref().chars()
 		.map(|c| font.metrics(c,usize::from(font_size.clone()) as f32))
 		.collect();
 
-	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
-	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize;
+	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize + 2 * padding;
+	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) as usize+ 2 * padding;
 
 	(total_width, max_height)
 }
