@@ -11,7 +11,7 @@ pub struct CliArgs {
 	#[arg(long = "canva-margin", default_value = "10", help = "Margin around the canvas in pixels. Default is 10.")]
 	pub canva_margin: usize,
 
-	#[arg(long = "words", required = true,value_delimiter = ',', help = "List of words to be used in the word cloud. This is a required argument.")]
+	#[arg(long = "words", required = true, value_delimiter = ',', help = "List of words to be used in the word cloud. This is a required argument.")]
 	pub words: Vec<String>,
 	#[arg(long = "word_size_range", default_value = "10,30", value_parser = parse_tuple, help = "Range of font sizes for the words, specified as MIN,MAX. Default is '10,30'.")]
 	pub word_size_range: (usize, usize),

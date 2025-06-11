@@ -15,7 +15,7 @@ use log::debug;
 
 fn main() {
 	let cli_args = CliArgs::parse();
-	
+
 	let log_level = if cfg!(debug_assertions) {
 		match cli_args.verbose {
 			true => log::LevelFilter::Debug,
@@ -45,7 +45,7 @@ fn main() {
 				.expect("Failed to load font from specified path")
 		}
 		None => {
-			Font::from_bytes(NOTO_SANS_SC_REGULAR.to_vec(), fontdue::FontSettings::default())
+			Font::from_bytes(NOTO_SANS_SC_REGULAR, fontdue::FontSettings::default())
 				.expect("Failed to load default font")
 		}
 	};

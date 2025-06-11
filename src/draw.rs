@@ -154,7 +154,7 @@ pub fn draw(config: &DrawConfig) -> SVG {
 		let word = config.fill_config.words.iter().choose(&mut rng).expect("No words available");
 
 		let chosen_font = find_possible_font_size(	word, x, y, &mut mask_tensor,
-													&config.fill_config.font,
+													config.fill_config.font,
 													config.fill_config.font_size_range.clone().rev(),
 													config.fill_config.padding,
 		);
@@ -168,7 +168,7 @@ pub fn draw(config: &DrawConfig) -> SVG {
 		let (font_size, text_width, text_height) = chosen_font.expect("Failed to find font size");
 		debug!("Filling word '{}' at position ({}, {}) with font size {}", word, x, y, font_size);
 		let color = config.fill_config.colors.iter().choose(&mut rng).expect("No colors available");
-		canvas = canvas.add(create_text_element(x, y, word, &config.fill_config.font, font_size, color));
+		canvas = canvas.add(create_text_element(x, y, word, config.fill_config.font, font_size, color));
 		// 更新可用区域
 		update_mask(&mut mask_tensor, (y, x), (text_width, text_height));
 
