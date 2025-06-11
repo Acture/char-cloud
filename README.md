@@ -1,7 +1,7 @@
 # Char Cloud
 
 [![Crates.io](https://img.shields.io/crates/v/char-cloud)](https://crates.io/crates/char-cloud)
-[![Documentation](https://docs.rs/char-cloud/badge.svg)](https://docs.rs/char-cloud)
+[![Release Build](https://github.com/Acture/char-cloud/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/char-cloud/actions/workflows/release.yml)
 [![License](https://img.shields.io/crates/l/char-cloud)](LICENSE)
 
 Char Cloud 是一个用 Rust 编写的命令行工具，可以生成自定义形状的文字云图片。它允许您使用文本作为轮廓，并用指定的词语填充形状，生成 SVG 格式的输出文件。
