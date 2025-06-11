@@ -8,38 +8,76 @@ on:
 
 jobs:
     build:
-        runs-on: ubuntu-latest
+        name: Build (${{ matrix.platform }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    -   platform: x86_64-linux
+                        os: ubuntu-latest
+                    -   platform: aarch64-linux
+                        os: ubuntu-latest
+                    -   platform: x86_64-darwin
+                        os: macos-latest
+                    -   platform: aarch64-darwin
+                        os: macos-latest
 
         steps:
-            # 检出代码
             -   name: Checkout repository
                 uses: actions/checkout@v4
 
-            # 缓存 Rust 编译工具链和依赖
-            -   uses: actions/cache@v4
-                with:
-                    path: |
-                        ~/.cargo/registry
-                        ~/.cargo/git
-                    key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
-                    restore-keys: |
-                        ${{ runner.os }}-cargo-
-
-            # 安装 Nix
             -   name: Install Nix
-                uses: cachix/install-nix-action@v31
+                uses: DeterminateSystems/nix-installer-action@main
 
-            # 使用 Nix 构建项目
+            -   name: Set up Nix cache
+                uses: DeterminateSystems/magic-nix-cache-action@main
+
             -   name: Build using Nix
-                run: nix build
+                run: |
+                    nix build .#packages.${{ matrix.platform }}.default
+                    
+                    # 准备发布文件
+                    mkdir -p dist
+                    cp result/bin/* dist/
+                    cp README.md LICENSE dist/ || true
+                    
+                    cd dist
+                    tar czf ../char-cloud-${{ matrix.platform }}.tar.gz *
+                    cd ..
 
-            # 上传构建后的二进制文件作为 Release 产物
-            -   name: Upload Release binary
-                uses: actions/upload-release-asset@v1
+            -   name: Upload artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: char-cloud-${{ matrix.platform }}
+                    path: char-cloud-${{ matrix.platform }}.tar.gz
+                    retention-days: 5
+
+    release:
+        name: Create Release
+        needs: build
+        runs-on: ubuntu-latest
+        if: startsWith(github.ref, 'refs/tags/')
+
+        steps:
+            -   name: Download artifacts
+                uses: actions/download-artifact@v4
+                with:
+                    path: artifacts
+
+            -   name: Generate checksums
+                run: |
+                    cd artifacts
+                    for file in */*; do
+                      sha256sum "$file" > "${file}.sha256"
+                    done
+
+            -   name: Create Release
+                uses: softprops/action-gh-release@v1
+                with:
+                    files: |
+                        artifacts/**/*
+                    draft: false
+                    generate_release_notes: true
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                with:
-                    upload_url: ${{ github.event.release.upload_url }}
-                    asset_path: ./result/bin/char-cloud
-                    asset_name: char-cloud-${{ github.ref_name }}-${{ runner.os }}.tar.gz
-                    asset_content_type: application/gzip

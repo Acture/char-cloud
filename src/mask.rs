@@ -149,6 +149,7 @@ pub fn mask_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
 }
 #[cfg(test)]
 mod tests {
+	use super::*;
 	#[test]
 	#[cfg(feature = "embedded_fonts")]
 	fn test_mask() {
@@ -171,7 +172,7 @@ mod tests {
 
 		let font_size = calculate_auto_font_size(&canvas, &shape.text, &font);
 
-		shape.font_size = FontSize::Fixed(font_size);
+		shape.font_size = crate::FontSize::Fixed(font_size);
 
 
 		let mask = calculate_mask(&canvas, &shape);
