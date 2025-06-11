@@ -20,8 +20,6 @@ jobs:
                         runner: ubuntu-latest
                     -   system: x86_64-windows
                         runner: windows-latest
-                    -   system: aarch64-windows
-                        runner: windows-latest
                     -   system: aarch64-macos
                         runner: macos-latest
                     -   system: x86_64-macos
@@ -33,13 +31,12 @@ jobs:
 
             -   name: Set up Rust
                 uses: actions-rust-lang/setup-rust-toolchain@v1
-                with:
-                    rustup-components: clippy
 
             -   name: Build release binary
                 run: cargo build --release
 
             -   name: Collect artifacts
+                shell: bash
                 run: |
                     mkdir -p dist
                     cp target/release/char-cloud* dist/
@@ -64,6 +61,7 @@ jobs:
                     path: artifacts
 
             -   name: Generate checksums
+                shell: bash
                 run: |
                     cd artifacts
                     for file in */*; do
