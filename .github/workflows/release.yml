@@ -12,10 +12,10 @@ jobs:
         steps:
             # 检出代码
             -   name: Checkout repository
-                uses: actions/checkout@v2
+                uses: actions/checkout@v4
 
             # 缓存 Rust 编译工具链和依赖
-            -   uses: actions/cache@v3
+            -   uses: actions/cache@v4
                 with:
                     path: |
                         ~/.cargo/registry
@@ -26,7 +26,7 @@ jobs:
 
             # 安装 Nix
             -   name: Install Nix
-                uses: cachix/install-nix-action@v22
+                uses: cachix/install-nix-action@v31
                 with:
                     nix_version: 2.14.0 # 或指定您需要的版本
 
@@ -52,10 +52,10 @@ jobs:
 
         steps:
             -   name: Checkout repository
-                uses: actions/checkout@v2
+                uses: actions/checkout@v4
 
             -   name: Install Nix
-                uses: cachix/install-nix-action@v22
+                uses: cachix/install-nix-action@v31
 
             -   name: Build and Run Tests
                 run: |
