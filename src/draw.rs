@@ -2,9 +2,11 @@ use crate::mask::{calculate_mask, calculate_text_size, CanvasConfig, ShapeConfig
 use crate::{mask, utils};
 use derive_builder::Builder;
 use fontdue::Font;
+use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, info, trace};
 use ndarray::Array2;
 use rand::seq::IteratorRandom;
+use std::cmp::max;
 use std::ops::RangeInclusive;
 use svg::node::element::SVG;
 use svg::Document;
@@ -135,6 +137,12 @@ pub fn draw(config: &DrawConfig) -> SVG {
 	let mut try_count = 0;
 	let mut rng = rand::rng();
 
+	info!("Starting to fill text into the canvas...");
+	let pb = ProgressBar::new(100);
+	pb.set_style(ProgressStyle::with_template("[{bar:40.cyan/blue}] {pos:>3}%")
+		.unwrap()
+		.progress_chars("=>-"));
+
 	while ratio < config.ratio_threshold && try_count < config.max_try_count {
 		debug!("Current ratio: {:.2}/{:.2}, Try count: {}/{}", ratio, config.ratio_threshold, try_count, config.max_try_count);
 		let available_positions = get_available_positions(&mask_tensor);
@@ -177,6 +185,7 @@ pub fn draw(config: &DrawConfig) -> SVG {
 		current_usable_area = mask_tensor.iter().filter(|&&value| value).count();
 		ratio = calculate_fill_ratio(current_usable_area, total_usable_area);
 		try_count += 1;
+		pb.set_position(max(ratio as usize, try_count * 100 / config.max_try_count) as u64);
 	}
 
 	canvas

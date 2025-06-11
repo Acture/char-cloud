@@ -1,6 +1,6 @@
 [package]
 name = "char-cloud"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Acture <acturea@gmail.com>"]
 description = "A command-line tool to generate word clouds from text files."
@@ -15,6 +15,7 @@ derive_builder = { version = "0.20.2", features = ["default"] }
 env_logger = { version = "0.11.8", features = ["default"] }
 fontdue = { version = "0.9.3", features = ["default"] }
 image = { version = "0.25.6", features = ["default"] }
+indicatif = "0.17.11"
 log = { version = "0.4.27" }
 ndarray = { version = "0.16.1", features = ["default"] }
 rand = { version = "0.9.1", features = ["default"] }
