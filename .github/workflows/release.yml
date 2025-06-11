@@ -85,7 +85,6 @@ jobs:
                 with:
                     files: artifacts/**/*
                     draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.is_formal_release == 'false' || true }}
-                    make_latest: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.is_formal_release == 'true' || true }}
                     generate_release_notes: true
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
