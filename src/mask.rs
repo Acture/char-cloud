@@ -149,15 +149,12 @@ pub fn mask_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
 }
 #[cfg(test)]
 mod tests {
-	use super::*;
-use crate::embedded_fonts::NOTO_SANS_SC_REGULAR;
-use fontdue::FontSettings;
-
 	#[test]
+	#[cfg(feature = "embedded_fonts")]
 	fn test_mask() {
 		// 加载字体数据（使用英文字体避免 fallback 错误）
 
-		let font = Font::from_bytes(NOTO_SANS_SC_REGULAR, FontSettings::default())
+		let font = Font::from_bytes(crate::embedded_fonts::NOTO_SANS_SC_REGULAR, fontdue::FontSettings::default())
 			.expect("Failed to parse font");
 
 		let canvas = CanvasConfig {

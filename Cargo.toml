@@ -19,3 +19,12 @@ log = { version = "0.4.27" }
 ndarray = { version = "0.16.1", features = ["default"] }
 rand = { version = "0.9.1", features = ["default"] }
 svg = { version = "0.18.0" }
+
+
+[features]
+default = ["embedded_fonts"]
+embedded_fonts = []
+
+
+[[bin]]
+name = "char-cloud"

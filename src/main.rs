@@ -6,12 +6,11 @@ mod embedded_fonts;
 
 use crate::args::CliArgs;
 use crate::draw::{draw, DrawConfigBuilder, FillConfigBuilder};
-use crate::embedded_fonts::NOTO_SANS_SC_REGULAR;
 use crate::mask::{calculate_auto_font_size, CanvasConfigBuilder, FontSize, ShapeConfigBuilder};
 use clap::Parser;
 use env_logger::Builder;
 use fontdue::Font;
-use log::debug;
+use log::{debug, error};
 
 fn main() {
 	let cli_args = CliArgs::parse();
@@ -45,8 +44,14 @@ fn main() {
 				.expect("Failed to load font from specified path")
 		}
 		None => {
-			Font::from_bytes(NOTO_SANS_SC_REGULAR, fontdue::FontSettings::default())
-				.expect("Failed to load default font")
+			if cfg!(feature = "embedded_fonts") {
+				debug!("No font path provided, using default embedded font for debug mode");
+				Font::from_bytes(crate::embedded_fonts::NOTO_SANS_SC_REGULAR, fontdue::FontSettings::default())
+					.expect("Failed to load default font")
+			} else {
+				error!("No font path provided and embedded fonts feature is not enabled. Please provide a valid font file path or enable the embedded fonts feature.");
+				panic!("No font available");
+			}
 		}
 	};
 
