@@ -77,11 +77,9 @@ jobs:
                 shell: bash
                 run: |
                     cd artifacts
-                    find . -type f ! -name '*.sha256' -exec sha256sum {} \; > sha256sums.txt
-                    while IFS= read -r line; do
-                        file=$(echo "$line" | cut -d ' ' -f3)
-                        echo "$line" > "${file}.sha256"
-                    done < sha256sums.txt
+                    find . -type f ! -name '*.sha256' -exec sha256sum {} \; | while read -r hash path; do
+                    echo "$hash  $path" > "${path}.sha256"
+                    done
             -   name: Create GitHub Release
                 uses: softprops/action-gh-release@v1
                 with:
