@@ -1,6 +1,6 @@
 [package]
 name = "char-cloud"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Acture <acturea@gmail.com>"]
 description = "A command-line tool to generate word clouds from text files."
