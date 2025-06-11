@@ -182,7 +182,7 @@ mod tests {
 		// 遮罩中应有非零像素（即至少有文字绘制）
 		assert!(mask.iter().any(|&x| x), "Mask should contain some occupied pixels");
 
-		let image = mask_to_image(&mask);
+		let image = crate::mask::mask_to_image(&mask);
 		image.save("test_output_mask.png").expect("Failed to save test mask image");
 	}
 }

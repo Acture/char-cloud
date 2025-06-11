@@ -28,8 +28,6 @@ jobs:
             # 安装 Nix
             -   name: Install Nix
                 uses: cachix/install-nix-action@v31
-                with:
-                    nix_version: 2.14.0 # 或指定您需要的版本
 
             # 使用 Nix 构建项目
             -   name: Build using Nix
