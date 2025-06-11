@@ -14,7 +14,8 @@ on:
                 options:
                     - 'true'
                     - 'false'
-
+permissions:
+    contents: write
 jobs:
     build:
         name: Build for ${{ matrix.system }}
