@@ -4,9 +4,9 @@ mod utils;
 mod args;
 mod embedded_fonts;
 
-use crate::embedded_fonts::NOTO_SANS_SC_REGULAR;
 use crate::args::CliArgs;
 use crate::draw::{draw, DrawConfigBuilder, FillConfigBuilder};
+use crate::embedded_fonts::NOTO_SANS_SC_REGULAR;
 use crate::mask::{calculate_auto_font_size, CanvasConfigBuilder, FontSize, ShapeConfigBuilder};
 use clap::Parser;
 use env_logger::Builder;
@@ -16,15 +16,21 @@ use log::debug;
 fn main() {
 	let cli_args = CliArgs::parse();
 	
-	let log_level = if cli_args.verbose {
-		log::LevelFilter::Debug
+	let log_level = if cfg!(debug_assertions) {
+		match cli_args.verbose {
+			true => log::LevelFilter::Debug,
+			false => log::LevelFilter::Info,
+		}
 	} else {
-		log::LevelFilter::Info
+		match cli_args.verbose {
+			true => log::LevelFilter::Debug,
+			false => log::LevelFilter::Warn,
+		}
 	};
 
 	Builder::from_default_env()
 		.filter_level(log_level)
-		.format_level( true)
+		.format_level(true)
 		.format_timestamp_secs()
 		.format_module_path(true)
 		.format_line_number(true)
@@ -39,12 +45,10 @@ fn main() {
 				.expect("Failed to load font from specified path")
 		}
 		None => {
-
 			Font::from_bytes(NOTO_SANS_SC_REGULAR.to_vec(), fontdue::FontSettings::default())
 				.expect("Failed to load default font")
 		}
 	};
-		
 
 
 	let canvas_config = CanvasConfigBuilder::default()
@@ -64,7 +68,7 @@ fn main() {
 		}
 		FontSize::AutoFit => {
 			let font_size = calculate_auto_font_size(&canvas_config, &cli_args.shape_text, &font);
-			
+
 			ShapeConfigBuilder::default()
 				.text(&cli_args.shape_text)
 				.font(&font)
@@ -82,7 +86,7 @@ fn main() {
 		.colors(cli_args.word_colors)
 		.build()
 		.expect("Failed to create <fill> configuration");
-	
+
 	let draw_config = DrawConfigBuilder::default()
 		.canva_config(canvas_config)
 		.shape_config(shape_config)
@@ -91,17 +95,17 @@ fn main() {
 		.max_try_count(cli_args.max_tries)
 		.build()
 		.expect("Failed to create <draw> configuration");
-		
+
 
 	let svg = draw(&draw_config);
-	
+
 	if svg.to_string().is_empty() {
 		log::error!("Generated SVG is empty, please check your configuration.");
 		return;
 	}
-	
+
 	log::info!("SVG generated successfully, saving to file...");
-	
+
 	let output_path = cli_args.output;
 
 	svg::save(
