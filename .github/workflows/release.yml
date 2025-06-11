@@ -86,7 +86,7 @@ jobs:
                 uses: softprops/action-gh-release@v1
                 with:
                     files: artifacts/**/*
-                    draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.is_formal_release == 'false' || true }}
+                    draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.is_formal_release == 'false' || false }}
                     generate_release_notes: true
                 env:
                     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
