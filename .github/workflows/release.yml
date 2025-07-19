@@ -1,50 +1,34 @@
-name: Release Build
+name: Release Build & Homebrew Update
 
 on:
     push:
         tags:
             - 'v*'
-    workflow_dispatch:
-        inputs:
-            is_formal_release:
-                description: 'Create a formal release?'
-                required: false
-                default: 'false'
-                type: choice
-                options:
-                    - 'true'
-                    - 'false'
+
 permissions:
     contents: write
+
 jobs:
     build:
         name: Build for ${{ matrix.system }}
         runs-on: ${{ matrix.runner }}
         strategy:
-            fail-fast: true
             matrix:
                 include:
                     -   system: x86_64-linux
                         runner: ubuntu-latest
-                    -   system: aarch64-linux
-                        runner: ubuntu-latest
-                    -   system: x86_64-windows
-                        runner: windows-latest
                     -   system: aarch64-macos
                         runner: macos-latest
                     -   system: x86_64-macos
                         runner: macos-latest
-
         steps:
-            -   name: Checkout repository
+            -   name: Checkout
                 uses: actions/checkout@v4
-                with:
-                    lfs: true
 
             -   name: Set up Rust
                 uses: actions-rust-lang/setup-rust-toolchain@v1
 
-            -   name: Build release binary
+            -   name: Build release
                 run: cargo build --release
 
             -   name: Rename binary
@@ -52,23 +36,21 @@ jobs:
                 run: |
                     mkdir -p dist
                     case "${{ matrix.system }}" in
-                      *windows*) cp target/release/char-cloud.exe dist/char-cloud-${{ matrix.system }}.exe ;;
-                      *)         cp target/release/char-cloud dist/char-cloud-${{ matrix.system }} ;;
+                      *linux*) cp target/release/char-cloud dist/char-cloud-x86_64-linux ;;
+                      *aarch64-macos*) cp target/release/char-cloud dist/char-cloud-aarch64-macos ;;
+                      *x86_64-macos*) cp target/release/char-cloud dist/char-cloud-x86_64-macos ;;
                     esac
 
-            -   name: Upload artifacts
+            -   name: Upload artifact
                 uses: actions/upload-artifact@v4
                 with:
                     name: char-cloud-${{ matrix.system }}
                     path: dist/**
 
     release:
-        name: Create GitHub Release
+        name: Publish GitHub Release
         needs: build
         runs-on: ubuntu-latest
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-
-
         steps:
             -   name: Download artifacts
                 uses: actions/download-artifact@v4
@@ -76,17 +58,73 @@ jobs:
                     path: artifacts
 
             -   name: Generate checksums
-                shell: bash
                 run: |
                     cd artifacts
-                    find . -type f ! -name '*.sha256' -exec sha256sum {} \; | while read -r hash path; do
-                    echo "$hash  $path" > "${path}.sha256"
-                    done
+                    find . -type f -exec sha256sum {} \; > checksums.txt
+
             -   name: Create GitHub Release
                 uses: softprops/action-gh-release@v1
                 with:
                     files: artifacts/**/*
-                    draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.is_formal_release == 'false' || false }}
-                    generate_release_notes: true
-                env:
-                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    update-tap:
+        name: Update Homebrew Formula
+        needs: release
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout tap repo
+                uses: actions/checkout@v4
+                with:
+                    repository: acture/homebrew-tools
+                    path: tap
+                    token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+            -   name: Get release tag
+                id: get_tag
+                run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+            -   name: Fetch artifacts
+                run: |
+                    mkdir -p artifacts
+                    for arch in aarch64-macos x86_64-macos x86_64-linux; do
+                      curl -L -o artifacts/char-cloud-$arch \
+                        https://github.com/acture/char-cloud/releases/download/${{ steps.get_tag.outputs.tag }}/char-cloud-$arch
+                    done
+
+            -   name: Compute SHA256s
+                id: sha
+                run: |
+                    echo "::group::SHA256 Computation"
+                    for arch in aarch64-macos x86_64-macos x86_64-linux; do
+                      hash=$(sha256sum artifacts/char-cloud-$arch | cut -d ' ' -f1)
+                      echo "$arch=$hash" >> sha.txt
+                      echo "$arch=$hash" >> $GITHUB_OUTPUT
+                    done
+                    echo "::endgroup::"
+
+            -   name: Update Formula
+                run: |
+                    FORMULA="tap/Formula/char-cloud.rb"
+                    TAG=${{ steps.get_tag.outputs.tag }}
+                    
+                    sed -i -E "s/version \".*\"/version \"${TAG#v}\"/" $FORMULA
+                    
+                    declare -A urls
+                    urls[aarch64-macos]="char-cloud-aarch64-macos"
+                    urls[x86_64-macos]="char-cloud-x86_64-macos"
+                    urls[x86_64-linux]="char-cloud-x86_64-linux"
+                    
+                    while IFS== read -r arch hash; do
+                        url="https://github.com/acture/char-cloud/releases/download/${TAG}/${urls[$arch]}"
+                        sed -i -E "s|url \".*${urls[$arch]}\"|url \"${url}\"|" $FORMULA
+                        sed -i -E "s|sha256 \".*\".*${urls[$arch]}|sha256 \"${hash}\"|" $FORMULA
+                    done < sha.txt
+
+            -   name: Commit & push
+                run: |
+                    cd tap
+                    git config user.name "github-actions"
+                    git config user.email "actions@github.com"
+                    git add Formula/char-cloud.rb
+                    git commit -m "Update char-cloud to ${{ steps.get_tag.outputs.tag }}"
+                    git push
