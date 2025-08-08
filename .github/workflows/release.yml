@@ -7,9 +7,9 @@ on:
     workflow_dispatch:
         inputs:
             ref:
-                description: 'Git ref (e.g. refs/tags/v1.0.0 or refs/heads/main)'
+                description: 'Git ref (e.g. refs/tags/v1.0.0)'
                 required: true
-                default: refs/heads/master
+                default: refs/tags/v1.0.0
     release:
         types: [ created ]
     push:
