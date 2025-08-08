@@ -5,6 +5,13 @@ permissions:
 
 on:
     workflow_dispatch:
+        inputs:
+            ref:
+                description: 'Git ref (e.g. refs/tags/v1.0.0 or refs/heads/main)'
+                required: true
+                default: refs/heads/master
+    release:
+        types: [ created ]
     push:
         tags:
             - v[0-9]+.*
