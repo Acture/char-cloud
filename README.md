@@ -4,30 +4,34 @@
 [![Release Build](https://github.com/Acture/char-cloud/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/char-cloud/actions/workflows/release.yml)
 [![License](https://img.shields.io/crates/l/char-cloud)](LICENSE)
 
-Char Cloud 是一个用 Rust 编写的命令行工具，可以生成自定义形状的文字云图片。它允许您使用文本作为轮廓，并用指定的词语填充形状，生成 SVG 格式的输出文件。
+Char Cloud is a command-line tool written in Rust that generates word-cloud images in custom shapes. It lets you use a piece of text as the outline and fill that shape with the words you provide, producing an SVG file as output.
 
-## 特性
+## Features
 
-- 支持自定义形状文本
-- 自动适应字体大小
-- 自定义输出图像大小
-- 支持自定义字体
-- 多种颜色支持
-- SVG 格式输出
-- 内置中文字体支持
+- Custom shape defined by text
+- Automatic font-size fitting
+- Configurable output image size
+- Custom font support
+- Multiple color support
+- SVG output
+- Built-in Chinese fonts
 
-## 安装
+## Installation
 ```bash
 cargo install char-cloud
 ```
 
+## Usage
 
-## 使用方法
-
-基本用法：
+Basic example:
 ```bash
-char-cloud --text "目标文本" --words "词1,词2,词3" --output output.svg
+char-cloud --text "Target Text" --words "word1,word2,word3" --output output.svg
 ```
 
-## 许可
-本项目采用 Affero GPL v3 许可协议。请在使用前仔细阅读 [LICENSE](LICENSE) 文件。
+For more options, run:
+```bash
+char-cloud --help
+```
+
+## License
+This project is licensed under the Affero GPL v3. Please read the [LICENSE](LICENSE) file before use.
