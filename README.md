@@ -24,6 +24,12 @@ Char Cloud is a **Rust CLI + reusable library** for generating shape-constrained
 cargo install char-cloud
 ```
 
+启用内置 Noto Sans SC（可选）：
+
+```bash
+cargo install char-cloud --features embedded_fonts
+```
+
 ## CLI 快速开始 | Quick Start
 
 ```bash
@@ -84,6 +90,15 @@ char-cloud --help
 - `--algorithm`：优先 `fast-grid`；高质量搜索可试 `mcts`；随机优化可试 `simulated-annealing`
 - `--palette`：可选 `auto/complementary/triadic/analogous/monochrome/pastel/earth/vibrant`
 - `--colors` 与 `--palette` 同时存在时，优先使用 `--colors`
+- `--font`：显式指定 `.ttf/.otf` 字体文件
+- `--choose-system-font`：当内置字体不可用时，交互选择系统字体
+
+## 字体与许可 | Fonts & License
+
+- 内置字体 feature：`embedded_fonts`（默认关闭）
+- 内置字体：Noto Sans SC
+- 字体许可：SIL Open Font License 1.1
+- 许可文本：`fonts/OFL-NotoSansSC.txt`
 
 ## 全局配置 | Global Config
 
@@ -122,11 +137,11 @@ rotations = [0, 90]
 ```rust
 use char_cloud::{
     generate, AlgorithmKind, CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions,
-    ShapeConfig, StyleConfig, WordEntry, load_default_embedded_font,
+    ShapeConfig, StyleConfig, WordEntry, load_font_from_file,
 };
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
-let font = load_default_embedded_font()?;
+let font = load_font_from_file(Path::new("fonts/NotoSansSC-Regular.ttf"))?;
 let request = CloudRequest {
     canvas: CanvasConfig { width: 1200, height: 700, margin: 12 },
     shape: ShapeConfig { text: "DATA".to_string(), font_size: FontSizeSpec::AutoFit },
@@ -144,6 +159,8 @@ let result = generate(request)?;
 std::fs::write("cloud.svg", result.svg)?;
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+启用 `--features embedded_fonts` 构建后，可以直接使用 `load_default_embedded_font()`。
 
 ## License
 

@@ -18,7 +18,11 @@ pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError>
 ```rust
 pub fn load_font_from_file<P: AsRef<Path>>(path: P) -> Result<Font, CharCloudError>
 pub fn load_default_embedded_font() -> Result<Font, CharCloudError>
+pub fn discover_system_font_candidates() -> Vec<PathBuf>
+pub fn load_system_font() -> Result<(Font, PathBuf), CharCloudError>
 ```
+
+`load_default_embedded_font()` requires `embedded_fonts` feature.
 
 ## Minimal Example
 
@@ -26,7 +30,7 @@ pub fn load_default_embedded_font() -> Result<Font, CharCloudError>
 use char_cloud::*;
 use std::sync::Arc;
 
-let font = load_default_embedded_font()?;
+let font = load_font_from_file("fonts/NotoSansSC-Regular.ttf")?;
 let request = CloudRequest {
     canvas: CanvasConfig::default(),
     shape: ShapeConfig { text: "HELLO".into(), font_size: FontSizeSpec::AutoFit },
@@ -44,6 +48,8 @@ let result = generate(request)?;
 std::fs::write("output.svg", result.svg)?;
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+Build with `--features embedded_fonts` if you want to call `load_default_embedded_font()`.
 
 ## Determinism
 
