@@ -148,12 +148,11 @@ pub fn save_mask_image(mask: &Array2<bool>, path: &Path) -> Result<(), CharCloud
     Ok(())
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "embedded_fonts"))]
 mod tests {
     use super::*;
 
     #[test]
-    #[cfg(feature = "embedded_fonts")]
     fn auto_font_size_and_mask_are_valid() {
         let font = crate::font::load_default_embedded_font().expect("embedded font should load");
         let canvas = CanvasConfig {

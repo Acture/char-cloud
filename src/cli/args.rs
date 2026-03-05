@@ -65,6 +65,13 @@ pub struct CliArgs {
     #[arg(long = "font")]
     pub font_path: Option<PathBuf>,
 
+    #[arg(
+        long = "choose-system-font",
+        default_value_t = false,
+        help = "Prompt to choose a system font when embedded/default font is unavailable"
+    )]
+    pub choose_system_font: bool,
+
     #[arg(long = "seed")]
     pub seed: Option<u64>,
 

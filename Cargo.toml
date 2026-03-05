@@ -41,5 +41,5 @@ criterion = "0.5.1"
 tempfile = "3.14.0"
 
 [features]
-default = ["embedded_fonts"]
+default = []
 embedded_fonts = []

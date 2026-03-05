@@ -17,7 +17,10 @@ pub use crate::core::model::{
     AlgorithmKind, CanvasConfig, CloudPlacement, CloudRequest, CloudResult, CloudStats,
     FontSizeSpec, RenderOptions, Rotation, ShapeConfig, StyleConfig, WordEntry,
 };
-pub use crate::font::{load_default_embedded_font, load_font_from_file};
+pub use crate::font::{
+    discover_system_font_candidates, load_default_embedded_font, load_font_from_file,
+    load_system_font,
+};
 
 pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError> {
     request.validate()?;
@@ -114,13 +117,12 @@ pub fn rotations_from_degrees(values: &[u16]) -> Result<Vec<Rotation>, CharCloud
     Ok(rotations)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "embedded_fonts"))]
 mod tests {
     use super::*;
     use std::sync::Arc;
 
     #[test]
-    #[cfg(feature = "embedded_fonts")]
     fn generation_is_deterministic_with_seed() {
         let font = load_default_embedded_font().expect("embedded font should be available");
         let request = CloudRequest {

@@ -5,6 +5,7 @@ use char_cloud::core::error::CharCloudError;
 use char_cloud::core::model::{
     CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, ShapeConfig, StyleConfig,
 };
+use char_cloud::font::{discover_system_font_candidates, load_system_font_from_candidates};
 use char_cloud::{
     generate, load_default_embedded_font, load_font_from_file, rotations_from_degrees,
 };
@@ -14,6 +15,8 @@ use cli::config::load_merged_config;
 use cli::palette::resolve_colors;
 use env_logger::Builder;
 use log::{error, info};
+use std::io::{IsTerminal, Write};
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 
@@ -109,9 +112,32 @@ fn run(args: CliArgs) -> Result<(), CharCloudError> {
 
     let font_path = args.font_path.as_ref().or(config.font.as_ref());
     let font = if let Some(path) = font_path {
+        info!("Using user-provided font: {}", path.display());
         load_font_from_file(path)?
     } else {
-        load_default_embedded_font()?
+        match load_default_embedded_font() {
+            Ok(font) => {
+                info!("Using embedded Noto Sans SC font");
+                font
+            }
+            Err(embedded_error) => {
+                let candidates = discover_system_font_candidates();
+                let (font, selected) = if args.choose_system_font {
+                    let selected =
+                        select_system_font_candidate(&candidates, args.choose_system_font)?;
+                    let font = load_font_from_file(&selected)?;
+                    (font, selected)
+                } else {
+                    load_system_font_from_candidates(&candidates)?
+                };
+                info!(
+                    "Embedded font unavailable ({}), using system font: {}",
+                    embedded_error,
+                    selected.display()
+                );
+                font
+            }
+        }
     };
 
     let words = collect_words(&args)?;
@@ -188,4 +214,59 @@ fn setup_logging(verbose: bool) {
         .format_module_path(false)
         .format_target(false)
         .init();
+}
+
+fn select_system_font_candidate(
+    candidates: &[PathBuf],
+    interactive: bool,
+) -> Result<PathBuf, CharCloudError> {
+    if candidates.is_empty() {
+        return Err(CharCloudError::FontLoad(
+            "no system fonts discovered; provide --font <path> or build with --features embedded_fonts".to_string(),
+        ));
+    }
+
+    if !interactive
+        || candidates.len() == 1
+        || !std::io::stdin().is_terminal()
+        || !std::io::stderr().is_terminal()
+    {
+        return Ok(candidates[0].clone());
+    }
+
+    let display_count = candidates.len().min(15);
+    eprintln!("Embedded font unavailable. Choose a system font:");
+    for (index, path) in candidates.iter().take(display_count).enumerate() {
+        eprintln!("  [{}] {}", index + 1, path.display());
+    }
+    if candidates.len() > display_count {
+        eprintln!(
+            "  ... {} more candidates not shown",
+            candidates.len() - display_count
+        );
+    }
+
+    eprint!("Select [1-{display_count}] (default 1): ");
+    let _ = std::io::stderr().flush();
+
+    let mut input = String::new();
+    if std::io::stdin().read_line(&mut input).is_err() {
+        return Ok(candidates[0].clone());
+    }
+
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return Ok(candidates[0].clone());
+    }
+
+    let selected = trimmed.parse::<usize>().map_err(|_| {
+        CharCloudError::InvalidConfig(format!("invalid system font selection '{trimmed}'"))
+    })?;
+    if !(1..=display_count).contains(&selected) {
+        return Err(CharCloudError::InvalidConfig(format!(
+            "system font selection out of range: {selected}"
+        )));
+    }
+
+    Ok(candidates[selected - 1].clone())
 }
