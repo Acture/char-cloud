@@ -1,189 +1,171 @@
-use derive_builder::Builder;
+use crate::core::error::CharCloudError;
+use crate::core::model::{CanvasConfig, Rotation};
 use fontdue::Font;
 use image::{ImageBuffer, Rgba};
 use ndarray::Array2;
+use std::path::Path;
 
-#[derive(Debug, Clone, Builder)]
-#[builder(setter(into))]
-pub struct CanvasConfig {
-	#[builder(default = "1920")]
-	pub width: usize,
-	#[builder(default = "1080")]
-	pub height: usize,
-	#[builder(default = "10")]
-	pub margin: usize,
+pub fn calculate_text_size(
+    text: &str,
+    font: &Font,
+    font_size: usize,
+    padding: usize,
+    rotation: Rotation,
+) -> (usize, usize) {
+    let metrics: Vec<_> = text
+        .chars()
+        .map(|c| font.metrics(c, font_size as f32))
+        .collect();
+    let width = metrics.iter().map(|m| m.advance_width).sum::<f32>().ceil() as usize + 2 * padding;
+    let height = metrics.iter().map(|m| m.height).max().unwrap_or(0) + 2 * padding;
+
+    match rotation {
+        Rotation::Deg0 => (width, height),
+        Rotation::Deg90 => (height, width),
+    }
 }
 
-#[derive(Debug, Clone)]
-pub enum FontSize {
-	Fixed(usize),
-	AutoFit,
+pub fn calculate_auto_font_size(canvas: &CanvasConfig, text: &str, font: &Font) -> usize {
+    let available_width = canvas.width.saturating_sub(2 * canvas.margin);
+    let available_height = canvas.height.saturating_sub(2 * canvas.margin);
+
+    let mut low = 1usize;
+    let mut high = available_height.max(1);
+    let mut best = 1usize;
+
+    while low <= high {
+        let mid = low + (high - low) / 2;
+        let (w, h) = calculate_text_size(text, font, mid, 0, Rotation::Deg0);
+        if w <= available_width && h <= available_height {
+            best = mid;
+            low = mid + 1;
+        } else {
+            if mid == 0 {
+                break;
+            }
+            high = mid.saturating_sub(1);
+        }
+    }
+
+    best
 }
 
-impl From<usize> for FontSize {
-	fn from(size: usize) -> Self {
-		FontSize::Fixed(size)
-	}
+pub fn build_shape_mask(
+    canvas: &CanvasConfig,
+    text: &str,
+    font: &Font,
+    font_size: usize,
+) -> Array2<bool> {
+    let mut mask = Array2::from_elem((canvas.height, canvas.width), false);
+
+    let metrics: Vec<_> = text
+        .chars()
+        .map(|c| font.metrics(c, font_size as f32))
+        .collect();
+    let text_width = metrics.iter().map(|m| m.advance_width).sum::<f32>().ceil() as usize;
+    let text_height = metrics.iter().map(|m| m.height).max().unwrap_or(0);
+
+    let offset_x = canvas.margin
+        + (canvas
+            .width
+            .saturating_sub(2 * canvas.margin)
+            .saturating_sub(text_width))
+            / 2;
+    let offset_y = canvas.margin
+        + (canvas
+            .height
+            .saturating_sub(2 * canvas.margin)
+            .saturating_sub(text_height))
+            / 2;
+
+    let mut cursor_x = offset_x;
+
+    for (ch, glyph_metrics) in text.chars().zip(metrics.iter()) {
+        let (raster_metrics, bitmap) = font.rasterize(ch, font_size as f32);
+
+        for y in 0..raster_metrics.height {
+            for x in 0..raster_metrics.width {
+                let pixel = bitmap[y * raster_metrics.width + x];
+                if pixel > 127 {
+                    let px = cursor_x + x;
+                    let py = offset_y + y;
+                    if px < canvas.width && py < canvas.height {
+                        mask[[py, px]] = true;
+                    }
+                }
+            }
+        }
+
+        cursor_x += glyph_metrics.advance_width.ceil() as usize;
+    }
+
+    mask
 }
 
-impl From<FontSize> for usize {
-	fn from(size: FontSize) -> Self {
-		match size {
-			FontSize::Fixed(size) => size,
-			FontSize::AutoFit => panic!("Cannot convert AutoFit to usize"),
-		}
-	}
+pub fn total_usable_area(mask: &Array2<bool>) -> usize {
+    mask.iter().filter(|&&value| value).count()
 }
 
+pub fn mask_centroid(mask: &Array2<bool>) -> (usize, usize) {
+    let mut sum_x = 0usize;
+    let mut sum_y = 0usize;
+    let mut count = 0usize;
 
-#[derive(Debug, Clone, Builder)]
-#[builder(setter(into))]
-pub struct ShapeConfig<'a> {
-	pub text: String,
-	pub font: &'a Font,
-	#[builder(default = "FontSize::AutoFit")]
-	pub font_size: FontSize,
+    for ((y, x), value) in mask.indexed_iter() {
+        if *value {
+            sum_x += x;
+            sum_y += y;
+            count += 1;
+        }
+    }
+
+    if count == 0 {
+        return (0, 0);
+    }
+
+    (sum_x / count, sum_y / count)
 }
 
+pub fn mask_to_image(mask: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+    let (height, width) = mask.dim();
+    let mut image = ImageBuffer::new(width as u32, height as u32);
 
-impl ShapeConfig<'_> {
-	pub fn get_font_size(&self) -> usize {
-		match self.font_size {
-			FontSize::Fixed(size) => size,
-			FontSize::AutoFit => {
-				panic!("Font size is set to AutoFit but no size has been calculated yet. Call calculate_auto_fit_size first.");
-			}
-		}
-	}
+    for ((y, x), occupied) in mask.indexed_iter() {
+        let pixel = if *occupied {
+            Rgba([255, 255, 255, 255])
+        } else {
+            Rgba([0, 0, 0, 0])
+        };
+        image.put_pixel(x as u32, y as u32, pixel);
+    }
+
+    image
 }
 
-pub fn calculate_text_size<S: AsRef<str>>(string: &S, font: &Font, font_size: FontSize, padding: usize) -> (usize, usize) {
-	let metrics_list: Vec<_> = string.as_ref().chars()
-		.map(|c| font.metrics(c, usize::from(font_size.clone()) as f32))
-		.collect();
-
-	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize + 2 * padding;
-	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0) + 2 * padding;
-
-	(total_width, max_height)
+pub fn save_mask_image(mask: &Array2<bool>, path: &Path) -> Result<(), CharCloudError> {
+    let image = mask_to_image(mask);
+    image.save(path)?;
+    Ok(())
 }
 
-pub fn calculate_auto_font_size<S: AsRef<str>>(canvas_config: &CanvasConfig, text: S, font: &Font) -> usize {
-	let available_width = canvas_config.width.saturating_sub(2 * canvas_config.margin);
-	let available_height = canvas_config.height.saturating_sub(2 * canvas_config.margin);
-
-	let mut low = 1;
-	let mut high = available_height;
-	let mut best_size = low;
-	while high > low {
-		let mid = (low + high) / 2;
-		let metrics = text.as_ref().chars()
-			.map(|c| font.metrics(c, mid as f32))
-			.collect::<Vec<_>>();
-		let total_width = metrics.iter().map(|m| m.advance_width).sum::<f32>() as usize;
-		let max_height = metrics.iter().map(|m| m.height).max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0);
-		if total_width <= available_width && max_height <= available_height {
-			best_size = mid;
-			low = mid + 1;
-		} else {
-			high = mid - 1;
-		}
-	}
-	best_size
-}
-
-
-pub fn calculate_mask(canvas: &CanvasConfig, shape: &ShapeConfig) -> Array2<bool> {
-	let height = canvas.height;
-	let width = canvas.width;
-	// 创建结果数组
-	let mut result = Array2::from_elem((height, width), false); // 初始化为 false
-
-	// 获取字体大小
-	let metrics_list: Vec<_> = shape.text.chars()
-		.map(|c| shape.font.metrics(c, shape.get_font_size() as f32))
-		.collect();
-	// 计算总宽度和最大高度
-	let total_width = metrics_list.iter().map(|m| m.advance_width).sum::<f32>() as usize;
-	let max_height = metrics_list.iter().map(|m| m.height).max().unwrap_or(0);
-
-	let offset_x = canvas.margin + (width.saturating_sub(2 * canvas.margin).saturating_sub(total_width)) / 2;
-	let offset_y = canvas.margin + (height.saturating_sub(2 * canvas.margin).saturating_sub(max_height)) / 2;
-
-	let mut current_x = offset_x;
-	for (c, metrics) in shape.text.chars().zip(metrics_list.iter()) {
-		let (_, bitmap) = shape.font.rasterize(c, shape.get_font_size() as f32);
-		let glyph_w = metrics.width;
-		let glyph_h = metrics.height;
-
-		for y in 0..glyph_h {
-			for x in 0..glyph_w {
-				let pixel = bitmap[y * glyph_w + x];
-				if current_x + x < width && offset_y + y < height && pixel > 127 {
-					result[[offset_y + y, current_x + x]] = true;
-				}
-			}
-		}
-
-		current_x += metrics.advance_width.ceil() as usize;
-	}
-	result
-}
-
-
-pub fn mask_to_image(map: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
-	let (height, width) = map.dim();
-	let mut image = ImageBuffer::new(width as u32, height as u32);
-
-	for ((y, x), &occupied) in map.indexed_iter() {
-		image.put_pixel(x as u32, y as u32,
-						if occupied {
-							Rgba([255, 255, 255, 255])  // 白色，完全不透明
-						} else {
-							Rgba([0, 0, 0, 0])  // 完全透明
-						},
-		);
-	}
-
-	image
-}
 #[cfg(test)]
 mod tests {
-	use super::*;
-	#[test]
-	#[cfg(feature = "embedded_fonts")]
-	fn test_mask() {
-		// 加载字体数据（使用英文字体避免 fallback 错误）
+    use super::*;
 
-		let font = Font::from_bytes(crate::embedded_fonts::NOTO_SANS_SC_REGULAR, fontdue::FontSettings::default())
-			.expect("Failed to parse font");
+    #[test]
+    #[cfg(feature = "embedded_fonts")]
+    fn auto_font_size_and_mask_are_valid() {
+        let font = crate::font::load_default_embedded_font().expect("embedded font should load");
+        let canvas = CanvasConfig {
+            width: 800,
+            height: 400,
+            margin: 20,
+        };
+        let size = calculate_auto_font_size(&canvas, "HELLO", &font);
+        assert!(size > 0);
 
-		let canvas = CanvasConfig {
-			width: 1920,
-			height: 1080,
-			margin: 10,
-		};
-
-		let mut shape = ShapeConfig {
-			text: "BRICS".to_string(), // 建议测试英文以确保字体支持
-			font: &font,
-			font_size: FontSize::AutoFit,
-		};
-
-		let font_size = calculate_auto_font_size(&canvas, &shape.text, &font);
-
-		shape.font_size = crate::FontSize::Fixed(font_size);
-
-
-		let mask = calculate_mask(&canvas, &shape);
-
-		// 基本尺寸断言
-		assert_eq!(mask.shape(), &[canvas.height, canvas.width]);
-
-		// 遮罩中应有非零像素（即至少有文字绘制）
-		assert!(mask.iter().any(|&x| x), "Mask should contain some occupied pixels");
-
-		let image = crate::mask::mask_to_image(&mask);
-		image.save("test_output_mask.png").expect("Failed to save test mask image");
-	}
+        let mask = build_shape_mask(&canvas, "HELLO", &font, size);
+        assert_eq!(mask.dim(), (400, 800));
+        assert!(total_usable_area(&mask) > 0);
+    }
 }
