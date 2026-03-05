@@ -17,6 +17,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -41,6 +43,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: taiki-e/create-gh-release-action@v1
         with:
           changelog: CHANGELOG.md
@@ -68,6 +72,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: char-cloud

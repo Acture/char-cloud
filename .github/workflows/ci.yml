@@ -19,6 +19,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
