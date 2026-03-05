@@ -1,0 +1,48 @@
+# Architecture
+
+## Overview
+
+Char Cloud v0.2 splits the project into a reusable library core and a thin CLI wrapper.
+
+- `src/lib.rs`: public API + generation orchestration
+- `src/core/`: shared models and error types
+- `src/mask.rs`: shape rasterization and mask utilities
+- `src/layout/`: pluggable layout strategies
+- `src/render.rs`: SVG assembly
+- `src/bin/char-cloud.rs`: CLI entrypoint only
+
+## Data Flow
+
+1. Parse request (CLI or library caller).
+2. Validate config (`CloudRequest::validate`).
+3. Resolve shape font size (`AutoFit` or fixed).
+4. Rasterize shape text into boolean mask.
+5. Run selected `LayoutStrategy` to place words.
+6. Render placements to SVG string.
+7. Return `CloudResult` with placements + stats.
+
+## Layout Plugin Contract
+
+`LayoutStrategy` consumes:
+
+- immutable shape mask
+- style/word/font configuration
+- max tries + ratio threshold
+- RNG source
+
+It returns:
+
+- placed words with coordinates/style
+- attempts used
+- occupied area count
+
+This contract keeps algorithms isolated from CLI and rendering concerns.
+
+## Error Model
+
+All library operations return `Result<_, CharCloudError>`.
+
+- `InvalidConfig`: request-level validation failures
+- `FontLoad`: font read/parse failures
+- `Io` / `Image`: filesystem and debug-mask failures
+- `Generation`: runtime algorithm failures
