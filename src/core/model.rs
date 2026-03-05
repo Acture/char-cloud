@@ -6,216 +6,216 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct CanvasConfig {
-    pub width: usize,
-    pub height: usize,
-    pub margin: usize,
+	pub width: usize,
+	pub height: usize,
+	pub margin: usize,
 }
 
 impl Default for CanvasConfig {
-    fn default() -> Self {
-        Self {
-            width: 1920,
-            height: 1080,
-            margin: 10,
-        }
-    }
+	fn default() -> Self {
+		Self {
+			width: 1920,
+			height: 1080,
+			margin: 10,
+		}
+	}
 }
 
 #[derive(Debug, Clone)]
 pub enum FontSizeSpec {
-    Fixed(usize),
-    AutoFit,
+	Fixed(usize),
+	AutoFit,
 }
 
 #[derive(Debug, Clone)]
 pub struct ShapeConfig {
-    pub text: String,
-    pub font_size: FontSizeSpec,
+	pub text: String,
+	pub font_size: FontSizeSpec,
 }
 
 #[derive(Debug, Clone)]
 pub struct WordEntry {
-    pub text: String,
-    pub weight: f32,
+	pub text: String,
+	pub weight: f32,
 }
 
 impl WordEntry {
-    pub fn new(text: impl Into<String>, weight: f32) -> Self {
-        Self {
-            text: text.into(),
-            weight,
-        }
-    }
+	pub fn new(text: impl Into<String>, weight: f32) -> Self {
+		Self {
+			text: text.into(),
+			weight,
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Rotation {
-    Deg0,
-    Deg90,
+	Deg0,
+	Deg90,
 }
 
 impl Rotation {
-    pub fn degrees(self) -> u16 {
-        match self {
-            Rotation::Deg0 => 0,
-            Rotation::Deg90 => 90,
-        }
-    }
+	pub fn degrees(self) -> u16 {
+		match self {
+			Rotation::Deg0 => 0,
+			Rotation::Deg90 => 90,
+		}
+	}
 }
 
 #[derive(Debug, Clone)]
 pub struct StyleConfig {
-    pub font_size_range: RangeInclusive<usize>,
-    pub padding: usize,
-    pub colors: Vec<String>,
-    pub rotations: Vec<Rotation>,
+	pub font_size_range: RangeInclusive<usize>,
+	pub padding: usize,
+	pub colors: Vec<String>,
+	pub rotations: Vec<Rotation>,
 }
 
 impl Default for StyleConfig {
-    fn default() -> Self {
-        Self {
-            font_size_range: 10..=30,
-            padding: 0,
-            colors: vec!["#000000".to_string()],
-            rotations: vec![Rotation::Deg0],
-        }
-    }
+	fn default() -> Self {
+		Self {
+			font_size_range: 10..=30,
+			padding: 0,
+			colors: vec!["#000000".to_string()],
+			rotations: vec![Rotation::Deg0],
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub enum AlgorithmKind {
-    RandomBaseline,
-    #[default]
-    FastGrid,
-    SpiralGreedy,
-    Mcts,
-    SimulatedAnnealing,
+	RandomBaseline,
+	#[default]
+	FastGrid,
+	SpiralGreedy,
+	Mcts,
+	SimulatedAnnealing,
 }
 
 #[derive(Debug, Clone)]
 pub struct RenderOptions {
-    pub show_progress: bool,
-    pub debug_mask_out: Option<PathBuf>,
+	pub show_progress: bool,
+	pub debug_mask_out: Option<PathBuf>,
 }
 
 impl Default for RenderOptions {
-    fn default() -> Self {
-        Self {
-            show_progress: true,
-            debug_mask_out: None,
-        }
-    }
+	fn default() -> Self {
+		Self {
+			show_progress: true,
+			debug_mask_out: None,
+		}
+	}
 }
 
 #[derive(Debug, Clone)]
 pub struct CloudRequest {
-    pub canvas: CanvasConfig,
-    pub shape: ShapeConfig,
-    pub words: Vec<WordEntry>,
-    pub style: StyleConfig,
-    pub algorithm: AlgorithmKind,
-    pub ratio_threshold: f32,
-    pub max_try_count: usize,
-    pub seed: Option<u64>,
-    pub font: Arc<Font>,
-    pub render: RenderOptions,
+	pub canvas: CanvasConfig,
+	pub shape: ShapeConfig,
+	pub words: Vec<WordEntry>,
+	pub style: StyleConfig,
+	pub algorithm: AlgorithmKind,
+	pub ratio_threshold: f32,
+	pub max_try_count: usize,
+	pub seed: Option<u64>,
+	pub font: Arc<Font>,
+	pub render: RenderOptions,
 }
 
 impl CloudRequest {
-    pub fn validate(&self) -> Result<(), CharCloudError> {
-        if self.canvas.width == 0 || self.canvas.height == 0 {
-            return Err(CharCloudError::InvalidConfig(
-                "canvas width/height must be greater than 0".to_string(),
-            ));
-        }
+	pub fn validate(&self) -> Result<(), CharCloudError> {
+		if self.canvas.width == 0 || self.canvas.height == 0 {
+			return Err(CharCloudError::InvalidConfig(
+				"canvas width/height must be greater than 0".to_string(),
+			));
+		}
 
-        if self.canvas.margin * 2 >= self.canvas.width
-            || self.canvas.margin * 2 >= self.canvas.height
-        {
-            return Err(CharCloudError::InvalidConfig(
-                "canvas margin is too large for the configured canvas size".to_string(),
-            ));
-        }
+		if self.canvas.margin * 2 >= self.canvas.width
+			|| self.canvas.margin * 2 >= self.canvas.height
+		{
+			return Err(CharCloudError::InvalidConfig(
+				"canvas margin is too large for the configured canvas size".to_string(),
+			));
+		}
 
-        if self.words.is_empty() {
-            return Err(CharCloudError::InvalidConfig(
-                "at least one word is required".to_string(),
-            ));
-        }
+		if self.words.is_empty() {
+			return Err(CharCloudError::InvalidConfig(
+				"at least one word is required".to_string(),
+			));
+		}
 
-        if self.shape.text.trim().is_empty() {
-            return Err(CharCloudError::InvalidConfig(
-                "shape text must not be empty".to_string(),
-            ));
-        }
+		if self.shape.text.trim().is_empty() {
+			return Err(CharCloudError::InvalidConfig(
+				"shape text must not be empty".to_string(),
+			));
+		}
 
-        if !(0.0..=1.0).contains(&self.ratio_threshold) {
-            return Err(CharCloudError::InvalidConfig(
-                "ratio threshold must be between 0.0 and 1.0".to_string(),
-            ));
-        }
+		if !(0.0..=1.0).contains(&self.ratio_threshold) {
+			return Err(CharCloudError::InvalidConfig(
+				"ratio threshold must be between 0.0 and 1.0".to_string(),
+			));
+		}
 
-        if self.max_try_count == 0 {
-            return Err(CharCloudError::InvalidConfig(
-                "max_try_count must be greater than 0".to_string(),
-            ));
-        }
+		if self.max_try_count == 0 {
+			return Err(CharCloudError::InvalidConfig(
+				"max_try_count must be greater than 0".to_string(),
+			));
+		}
 
-        let min_size = *self.style.font_size_range.start();
-        let max_size = *self.style.font_size_range.end();
-        if min_size == 0 || min_size > max_size {
-            return Err(CharCloudError::InvalidConfig(
-                "font_size_range must be valid and greater than 0".to_string(),
-            ));
-        }
+		let min_size = *self.style.font_size_range.start();
+		let max_size = *self.style.font_size_range.end();
+		if min_size == 0 || min_size > max_size {
+			return Err(CharCloudError::InvalidConfig(
+				"font_size_range must be valid and greater than 0".to_string(),
+			));
+		}
 
-        if self.style.colors.is_empty() {
-            return Err(CharCloudError::InvalidConfig(
-                "at least one color is required".to_string(),
-            ));
-        }
+		if self.style.colors.is_empty() {
+			return Err(CharCloudError::InvalidConfig(
+				"at least one color is required".to_string(),
+			));
+		}
 
-        if self.style.rotations.is_empty() {
-            return Err(CharCloudError::InvalidConfig(
-                "at least one rotation is required".to_string(),
-            ));
-        }
+		if self.style.rotations.is_empty() {
+			return Err(CharCloudError::InvalidConfig(
+				"at least one rotation is required".to_string(),
+			));
+		}
 
-        if self.words.iter().any(|w| w.text.trim().is_empty()) {
-            return Err(CharCloudError::InvalidConfig(
-                "word list contains empty entries".to_string(),
-            ));
-        }
+		if self.words.iter().any(|w| w.text.trim().is_empty()) {
+			return Err(CharCloudError::InvalidConfig(
+				"word list contains empty entries".to_string(),
+			));
+		}
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 #[derive(Debug, Clone)]
 pub struct CloudPlacement {
-    pub word: String,
-    pub x: usize,
-    pub y: usize,
-    pub font_size: usize,
-    pub color: String,
-    pub rotation: Rotation,
+	pub word: String,
+	pub x: usize,
+	pub y: usize,
+	pub font_size: usize,
+	pub color: String,
+	pub rotation: Rotation,
 }
 
 #[derive(Debug, Clone)]
 pub struct CloudStats {
-    pub seed: u64,
-    pub shape_font_size: usize,
-    pub total_usable_area: usize,
-    pub used_area: usize,
-    pub fill_ratio: f32,
-    pub attempts: usize,
-    pub placed_words: usize,
-    pub elapsed_ms: u128,
+	pub seed: u64,
+	pub shape_font_size: usize,
+	pub total_usable_area: usize,
+	pub used_area: usize,
+	pub fill_ratio: f32,
+	pub attempts: usize,
+	pub placed_words: usize,
+	pub elapsed_ms: u128,
 }
 
 #[derive(Debug, Clone)]
 pub struct CloudResult {
-    pub svg: String,
-    pub placements: Vec<CloudPlacement>,
-    pub stats: CloudStats,
+	pub svg: String,
+	pub placements: Vec<CloudPlacement>,
+	pub stats: CloudStats,
 }

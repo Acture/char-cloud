@@ -1,7 +1,7 @@
 use crate::core::error::CharCloudError;
 use crate::layout::common::{
-    Rect, create_progress_bar, descending_font_sizes, finish_progress, is_area_available,
-    occupy_area, pick_color, pick_weighted_word, placement, total_area, update_progress,
+	Rect, create_progress_bar, descending_font_sizes, finish_progress, is_area_available,
+	occupy_area, pick_color, pick_weighted_word, placement, total_area, update_progress,
 };
 use crate::layout::{LayoutRequest, LayoutResult, LayoutStrategy};
 use crate::mask::{calculate_text_size, mask_centroid};
@@ -12,138 +12,138 @@ const SEARCH_RADIUS_LIMIT: usize = 220;
 pub struct SpiralGreedyStrategy;
 
 impl LayoutStrategy for SpiralGreedyStrategy {
-    fn place(
-        &self,
-        request: &LayoutRequest<'_>,
-        rng: &mut dyn RngCore,
-    ) -> Result<LayoutResult, CharCloudError> {
-        let mut mask = request.mask.clone();
-        let total_usable_area = total_area(&mask);
-        if total_usable_area == 0 {
-            return Err(CharCloudError::Generation(
-                "shape mask has no usable area".to_string(),
-            ));
-        }
+	fn place(
+		&self,
+		request: &LayoutRequest<'_>,
+		rng: &mut dyn RngCore,
+	) -> Result<LayoutResult, CharCloudError> {
+		let mut mask = request.mask.clone();
+		let total_usable_area = total_area(&mask);
+		if total_usable_area == 0 {
+			return Err(CharCloudError::Generation(
+				"shape mask has no usable area".to_string(),
+			));
+		}
 
-        let mut center = mask_centroid(&mask);
-        let offsets = spiral_offsets(SEARCH_RADIUS_LIMIT);
-        let mut placements = Vec::new();
-        let mut attempts = 0usize;
-        let mut used_area = 0usize;
-        let progress = create_progress_bar(request.show_progress);
+		let mut center = mask_centroid(&mask);
+		let offsets = spiral_offsets(SEARCH_RADIUS_LIMIT);
+		let mut placements = Vec::new();
+		let mut attempts = 0usize;
+		let mut used_area = 0usize;
+		let progress = create_progress_bar(request.show_progress);
 
-        while attempts < request.max_try_count {
-            let fill_ratio = used_area as f32 / total_usable_area as f32;
-            if fill_ratio >= request.ratio_threshold {
-                break;
-            }
+		while attempts < request.max_try_count {
+			let fill_ratio = used_area as f32 / total_usable_area as f32;
+			if fill_ratio >= request.ratio_threshold {
+				break;
+			}
 
-            attempts += 1;
-            let Some(word_entry) = pick_weighted_word(request.words, rng) else {
-                break;
-            };
+			attempts += 1;
+			let Some(word_entry) = pick_weighted_word(request.words, rng) else {
+				break;
+			};
 
-            let mut placed = None;
-            'font_search: for size in descending_font_sizes(request.style) {
-                for rotation in &request.style.rotations {
-                    let (w, h) = calculate_text_size(
-                        &word_entry.text,
-                        request.font,
-                        size,
-                        request.style.padding,
-                        *rotation,
-                    );
-                    for &(dy, dx) in &offsets {
-                        let x = center.0 as isize + dx;
-                        let y = center.1 as isize + dy;
+			let mut placed = None;
+			'font_search: for size in descending_font_sizes(request.style) {
+				for rotation in &request.style.rotations {
+					let (w, h) = calculate_text_size(
+						&word_entry.text,
+						request.font,
+						size,
+						request.style.padding,
+						*rotation,
+					);
+					for &(dy, dx) in &offsets {
+						let x = center.0 as isize + dx;
+						let y = center.1 as isize + dy;
 
-                        if x < 0 || y < 0 {
-                            continue;
-                        }
+						if x < 0 || y < 0 {
+							continue;
+						}
 
-                        let rect = Rect {
-                            x: x as usize,
-                            y: y as usize,
-                            w,
-                            h,
-                        };
+						let rect = Rect {
+							x: x as usize,
+							y: y as usize,
+							w,
+							h,
+						};
 
-                        if is_area_available(&mask, rect) {
-                            placed = Some((size, *rotation, rect));
-                            break 'font_search;
-                        }
-                    }
-                }
-            }
+						if is_area_available(&mask, rect) {
+							placed = Some((size, *rotation, rect));
+							break 'font_search;
+						}
+					}
+				}
+			}
 
-            if let Some((font_size, rotation, rect)) = placed {
-                used_area += occupy_area(&mut mask, rect);
-                let color = pick_color(&request.style.colors, rng);
-                placements.push(placement(
-                    &word_entry.text,
-                    rect,
-                    font_size,
-                    color,
-                    rotation,
-                ));
+			if let Some((font_size, rotation, rect)) = placed {
+				used_area += occupy_area(&mut mask, rect);
+				let color = pick_color(&request.style.colors, rng);
+				placements.push(placement(
+					&word_entry.text,
+					rect,
+					font_size,
+					color,
+					rotation,
+				));
 
-                center = (rect.x, rect.y);
-                if !mask[[
-                    center.1.min(mask.nrows() - 1),
-                    center.0.min(mask.ncols() - 1),
-                ]] {
-                    center = mask_centroid(&mask);
-                }
-            }
+				center = (rect.x, rect.y);
+				if !mask[[
+					center.1.min(mask.nrows() - 1),
+					center.0.min(mask.ncols() - 1),
+				]] {
+					center = mask_centroid(&mask);
+				}
+			}
 
-            let ratio_progress = (used_area * 100) / total_usable_area;
-            let try_progress = (attempts * 100) / request.max_try_count;
-            update_progress(&progress, ratio_progress.max(try_progress));
-        }
+			let ratio_progress = (used_area * 100) / total_usable_area;
+			let try_progress = (attempts * 100) / request.max_try_count;
+			update_progress(&progress, ratio_progress.max(try_progress));
+		}
 
-        finish_progress(&progress);
+		finish_progress(&progress);
 
-        Ok(LayoutResult {
-            placements,
-            attempts,
-            used_area,
-        })
-    }
+		Ok(LayoutResult {
+			placements,
+			attempts,
+			used_area,
+		})
+	}
 }
 
 fn spiral_offsets(radius_limit: usize) -> Vec<(isize, isize)> {
-    let mut offsets = Vec::with_capacity(radius_limit * radius_limit);
-    offsets.push((0, 0));
+	let mut offsets = Vec::with_capacity(radius_limit * radius_limit);
+	offsets.push((0, 0));
 
-    let mut x = 0isize;
-    let mut y = 0isize;
-    let mut step = 1isize;
+	let mut x = 0isize;
+	let mut y = 0isize;
+	let mut step = 1isize;
 
-    while x.unsigned_abs() <= radius_limit && y.unsigned_abs() <= radius_limit {
-        for _ in 0..step {
-            x += 1;
-            offsets.push((y, x));
-        }
-        for _ in 0..step {
-            y += 1;
-            offsets.push((y, x));
-        }
-        step += 1;
+	while x.unsigned_abs() <= radius_limit && y.unsigned_abs() <= radius_limit {
+		for _ in 0..step {
+			x += 1;
+			offsets.push((y, x));
+		}
+		for _ in 0..step {
+			y += 1;
+			offsets.push((y, x));
+		}
+		step += 1;
 
-        for _ in 0..step {
-            x -= 1;
-            offsets.push((y, x));
-        }
-        for _ in 0..step {
-            y -= 1;
-            offsets.push((y, x));
-        }
-        step += 1;
+		for _ in 0..step {
+			x -= 1;
+			offsets.push((y, x));
+		}
+		for _ in 0..step {
+			y -= 1;
+			offsets.push((y, x));
+		}
+		step += 1;
 
-        if step as usize > radius_limit * 2 {
-            break;
-        }
-    }
+		if step as usize > radius_limit * 2 {
+			break;
+		}
+	}
 
-    offsets
+	offsets
 }

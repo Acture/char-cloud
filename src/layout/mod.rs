@@ -19,36 +19,36 @@ pub use spiral_greedy::SpiralGreedyStrategy;
 
 #[derive(Debug)]
 pub struct LayoutRequest<'a> {
-    pub mask: &'a Array2<bool>,
-    pub words: &'a [WordEntry],
-    pub style: &'a StyleConfig,
-    pub font: &'a Font,
-    pub ratio_threshold: f32,
-    pub max_try_count: usize,
-    pub show_progress: bool,
+	pub mask: &'a Array2<bool>,
+	pub words: &'a [WordEntry],
+	pub style: &'a StyleConfig,
+	pub font: &'a Font,
+	pub ratio_threshold: f32,
+	pub max_try_count: usize,
+	pub show_progress: bool,
 }
 
 #[derive(Debug)]
 pub struct LayoutResult {
-    pub placements: Vec<CloudPlacement>,
-    pub attempts: usize,
-    pub used_area: usize,
+	pub placements: Vec<CloudPlacement>,
+	pub attempts: usize,
+	pub used_area: usize,
 }
 
 pub trait LayoutStrategy {
-    fn place(
-        &self,
-        request: &LayoutRequest<'_>,
-        rng: &mut dyn RngCore,
-    ) -> Result<LayoutResult, CharCloudError>;
+	fn place(
+		&self,
+		request: &LayoutRequest<'_>,
+		rng: &mut dyn RngCore,
+	) -> Result<LayoutResult, CharCloudError>;
 }
 
 pub fn strategy_for(kind: AlgorithmKind) -> Box<dyn LayoutStrategy> {
-    match kind {
-        AlgorithmKind::RandomBaseline => Box::new(RandomBaselineStrategy),
-        AlgorithmKind::FastGrid => Box::new(FastGridStrategy),
-        AlgorithmKind::SpiralGreedy => Box::new(SpiralGreedyStrategy),
-        AlgorithmKind::Mcts => Box::new(MctsStrategy),
-        AlgorithmKind::SimulatedAnnealing => Box::new(SimulatedAnnealingStrategy),
-    }
+	match kind {
+		AlgorithmKind::RandomBaseline => Box::new(RandomBaselineStrategy),
+		AlgorithmKind::FastGrid => Box::new(FastGridStrategy),
+		AlgorithmKind::SpiralGreedy => Box::new(SpiralGreedyStrategy),
+		AlgorithmKind::Mcts => Box::new(MctsStrategy),
+		AlgorithmKind::SimulatedAnnealing => Box::new(SimulatedAnnealingStrategy),
+	}
 }
