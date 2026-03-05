@@ -1,6 +1,10 @@
 use std::process::Command;
 use tempfile::tempdir;
 
+fn test_font_path() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("fonts/NotoSansSC-Regular.ttf")
+}
+
 #[test]
 fn explicit_config_overrides_user_and_project() {
     let temp = tempdir().expect("tempdir should be created");
@@ -28,6 +32,7 @@ fn explicit_config_overrides_user_and_project() {
     .expect("explicit config should be written");
 
     let output = workspace.join("out.svg");
+    let font = test_font_path();
 
     let status = Command::new(env!("CARGO_BIN_EXE_char-cloud"))
         .current_dir(&workspace)
@@ -39,11 +44,10 @@ fn explicit_config_overrides_user_and_project() {
             "RUST",
             "--words",
             "rust,cloud,layout,mask",
-            "--seed",
-            "42",
-            "--no-progress",
-            "--output",
+            "--font",
         ])
+        .arg(&font)
+        .args(["--seed", "42", "--no-progress", "--output"])
         .arg(&output)
         .status()
         .expect("process should run");
@@ -83,6 +87,7 @@ fn cli_overrides_all_config_layers() {
     .expect("explicit config should be written");
 
     let output = workspace.join("out.svg");
+    let font = test_font_path();
 
     let status = Command::new(env!("CARGO_BIN_EXE_char-cloud"))
         .current_dir(&workspace)
@@ -96,11 +101,10 @@ fn cli_overrides_all_config_layers() {
             "rust,cloud,layout,mask",
             "--colors",
             "#444444",
-            "--seed",
-            "42",
-            "--no-progress",
-            "--output",
+            "--font",
         ])
+        .arg(&font)
+        .args(["--seed", "42", "--no-progress", "--output"])
         .arg(&output)
         .status()
         .expect("process should run");

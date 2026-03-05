@@ -2,9 +2,10 @@
 
 use char_cloud::{
     AlgorithmKind, CanvasConfig, CloudRequest, CloudResult, FontSizeSpec, RenderOptions, Rotation,
-    ShapeConfig, StyleConfig, WordEntry, generate, load_default_embedded_font,
+    ShapeConfig, StyleConfig, WordEntry, generate, load_default_embedded_font, load_font_from_file,
     mask::{build_shape_mask, calculate_auto_font_size, calculate_text_size},
 };
+use std::path::Path;
 use std::sync::Arc;
 
 pub fn sample_words() -> Vec<WordEntry> {
@@ -23,7 +24,11 @@ pub fn sample_words() -> Vec<WordEntry> {
 }
 
 pub fn build_request(algorithm: AlgorithmKind) -> CloudRequest {
-    let font = load_default_embedded_font().expect("embedded font should load");
+    let font = load_default_embedded_font().or_else(|_| {
+        let fallback = Path::new(env!("CARGO_MANIFEST_DIR")).join("fonts/NotoSansSC-Regular.ttf");
+        load_font_from_file(&fallback)
+    });
+    let font = font.expect("test font should load");
 
     CloudRequest {
         canvas: CanvasConfig {

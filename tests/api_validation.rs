@@ -1,7 +1,9 @@
 use char_cloud::{
     AlgorithmKind, CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, Rotation, ShapeConfig,
-    StyleConfig, WordEntry, generate, load_default_embedded_font, rotations_from_degrees,
+    StyleConfig, WordEntry, generate, load_default_embedded_font, load_font_from_file,
+    rotations_from_degrees,
 };
+use std::path::Path;
 use std::sync::Arc;
 
 #[test]
@@ -12,7 +14,11 @@ fn rejects_unsupported_rotation() {
 
 #[test]
 fn generate_with_same_seed_is_stable() {
-    let font = Arc::new(load_default_embedded_font().expect("embedded font should load"));
+    let font = load_default_embedded_font().or_else(|_| {
+        let fallback = Path::new(env!("CARGO_MANIFEST_DIR")).join("fonts/NotoSansSC-Regular.ttf");
+        load_font_from_file(&fallback)
+    });
+    let font = Arc::new(font.expect("test font should load"));
     let request = CloudRequest {
         canvas: CanvasConfig {
             width: 420,
