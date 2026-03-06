@@ -10,6 +10,11 @@ on:
         description: "Tag to release (e.g. v0.2.1)"
         required: true
         type: string
+      upload_assets:
+        description: "Upload release binaries to GitHub Release"
+        required: false
+        default: false
+        type: boolean
       publish_cargo:
         description: "Also publish to crates.io"
         required: false
@@ -98,6 +103,7 @@ jobs:
   upload-assets:
     name: Upload binaries (${{ matrix.target }})
     needs: prepare-release
+    if: github.event_name == 'push' || github.event.inputs.upload_assets == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -135,6 +141,7 @@ jobs:
     needs: prepare-release
     if: github.event_name == 'push' || github.event.inputs.publish_cargo == 'true'
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
     steps:
@@ -168,6 +175,7 @@ jobs:
     needs: prepare-release
     if: github.event_name == 'push' || github.event.inputs.update_homebrew == 'true'
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: read
     steps:

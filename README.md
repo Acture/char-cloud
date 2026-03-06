@@ -163,7 +163,8 @@ Required repository secrets:
 Trigger modes:
 
 - Automatic: push a tag like `v0.2.1`
-- Manual: run `Release` workflow with input `tag`, optionally enabling `publish_cargo` and `update_homebrew`
+- Manual: run `Release` workflow with input `tag`, optionally enabling `upload_assets`, `publish_cargo`, and `update_homebrew`
+- If you store release credentials as environment secrets, use the `release` environment for the publish jobs
 
 ## Documentation
 
