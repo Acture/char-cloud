@@ -166,9 +166,11 @@ rotations = [0, 90]
 
 The `Release` workflow supports tag-driven and manual publishing to GitHub Releases, crates.io, and the `Acture/homebrew-ac` tap.
 
-- Secrets: `CARGO_REGISTRY_TOKEN`, `HOMEBREW_TAP_TOKEN`
+- Secrets: `HOMEBREW_TAP_TOKEN`
 - Manual inputs: `tag`, `upload_assets`, `publish_cargo`, `update_homebrew`
-- Use the `release` environment if you store publish credentials as environment secrets
+- crates.io publishing uses Trusted Publishing via GitHub OIDC; configure `Acture/glyphweave`, workflow `release.yml`, and environment `release` as a trusted publisher on crates.io
+- The first publish of a brand-new crate can be done locally; once the crate exists, rerun the workflow or use future tags for Trusted Publishing
+- Use the `release` environment if you gate publishing with environment approvals
 
 ## License
 
