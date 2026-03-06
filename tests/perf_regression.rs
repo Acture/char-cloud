@@ -1,6 +1,6 @@
 mod support;
 
-use char_cloud::{AlgorithmKind, generate};
+use glyphweave::{AlgorithmKind, generate};
 use std::time::Instant;
 use support::build_request;
 

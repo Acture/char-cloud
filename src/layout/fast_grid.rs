@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::core::model::Rotation;
 use crate::layout::common::{
 	Rect, available_positions, create_progress_bar, descending_font_sizes, finish_progress,
@@ -21,11 +21,11 @@ impl LayoutStrategy for FastGridStrategy {
 		&self,
 		request: &LayoutRequest<'_>,
 		rng: &mut dyn RngCore,
-	) -> Result<LayoutResult, CharCloudError> {
+	) -> Result<LayoutResult, GlyphWeaveError> {
 		let mut mask = request.mask.clone();
 		let total_usable_area = total_area(&mask);
 		if total_usable_area == 0 {
-			return Err(CharCloudError::Generation(
+			return Err(GlyphWeaveError::Generation(
 				"shape mask has no usable area".to_string(),
 			));
 		}

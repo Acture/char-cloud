@@ -1,19 +1,19 @@
 #[path = "../cli/mod.rs"]
 mod cli;
 
-use char_cloud::core::error::CharCloudError;
-use char_cloud::core::model::{
-	CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, ShapeConfig, StyleConfig,
-};
-use char_cloud::font::{discover_system_font_candidates, load_system_font_from_candidates};
-use char_cloud::{
-	generate, load_default_embedded_font, load_font_from_file, rotations_from_degrees,
-};
 use clap::Parser;
 use cli::args::{CliAlgorithm, CliArgs, PaletteKind, collect_words, parse_shape_size_text};
 use cli::config::load_merged_config;
 use cli::palette::resolve_colors;
 use env_logger::Builder;
+use glyphweave::core::error::GlyphWeaveError;
+use glyphweave::core::model::{
+	CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, ShapeConfig, StyleConfig,
+};
+use glyphweave::font::{discover_system_font_candidates, load_system_font_from_candidates};
+use glyphweave::{
+	generate, load_default_embedded_font, load_font_from_file, rotations_from_degrees,
+};
 use log::{error, info};
 use std::io::{IsTerminal, Write};
 use std::path::PathBuf;
@@ -43,7 +43,7 @@ fn main() -> ExitCode {
 	}
 }
 
-fn run(args: CliArgs) -> Result<(), CharCloudError> {
+fn run(args: CliArgs) -> Result<(), GlyphWeaveError> {
 	let config = load_merged_config(args.config.as_deref())?;
 
 	let canvas_size = args
@@ -67,7 +67,7 @@ fn run(args: CliArgs) -> Result<(), CharCloudError> {
 	let shape_size = match (&args.shape_size, &config.text_size) {
 		(Some(size), _) => size.clone(),
 		(None, Some(size_text)) => parse_shape_size_text(size_text).map_err(|err| {
-			CharCloudError::InvalidConfig(format!("invalid text_size in config: {err}"))
+			GlyphWeaveError::InvalidConfig(format!("invalid text_size in config: {err}"))
 		})?,
 		(None, None) => FontSizeSpec::AutoFit,
 	};
@@ -185,12 +185,12 @@ fn run(args: CliArgs) -> Result<(), CharCloudError> {
 	Ok(())
 }
 
-fn map_error_to_exit_code(error: &CharCloudError) -> u8 {
+fn map_error_to_exit_code(error: &GlyphWeaveError) -> u8 {
 	match error {
-		CharCloudError::InvalidConfig(_) => 2,
-		CharCloudError::FontLoad(_) => 3,
-		CharCloudError::Io(_) | CharCloudError::Image(_) => 4,
-		CharCloudError::Generation(_) => 5,
+		GlyphWeaveError::InvalidConfig(_) => 2,
+		GlyphWeaveError::FontLoad(_) => 3,
+		GlyphWeaveError::Io(_) | GlyphWeaveError::Image(_) => 4,
+		GlyphWeaveError::Generation(_) => 5,
 	}
 }
 
@@ -219,9 +219,9 @@ fn setup_logging(verbose: bool) {
 fn select_system_font_candidate(
 	candidates: &[PathBuf],
 	interactive: bool,
-) -> Result<PathBuf, CharCloudError> {
+) -> Result<PathBuf, GlyphWeaveError> {
 	if candidates.is_empty() {
-		return Err(CharCloudError::FontLoad(
+		return Err(GlyphWeaveError::FontLoad(
 			"no system fonts discovered; provide --font <path> or build with --features embedded_fonts"
 				.to_string(),
 		));
@@ -261,10 +261,10 @@ fn select_system_font_candidate(
 	}
 
 	let selected = trimmed.parse::<usize>().map_err(|_| {
-		CharCloudError::InvalidConfig(format!("invalid system font selection '{trimmed}'"))
+		GlyphWeaveError::InvalidConfig(format!("invalid system font selection '{trimmed}'"))
 	})?;
 	if !(1..=display_count).contains(&selected) {
-		return Err(CharCloudError::InvalidConfig(format!(
+		return Err(GlyphWeaveError::InvalidConfig(format!(
 			"system font selection out of range: {selected}"
 		)));
 	}

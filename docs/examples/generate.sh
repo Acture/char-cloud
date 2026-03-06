@@ -4,9 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-BIN="target/debug/char-cloud"
+BIN="target/debug/glyphweave"
 if [[ ! -x "$BIN" ]]; then
-	cargo build --bin char-cloud
+	cargo build --bin glyphweave
 fi
 
 "$BIN" --text RUST --word-file docs/examples/words-tech.txt --canvas-size 1600,900 --canvas-margin 14 --word-size-range 10,38 --algorithm fast-grid --palette auto --palette-base '#0EA5E9' --palette-size 7 --rotations 0,90 --seed 42 --ratio 0.87 --max-tries 14000 --font fonts/Roboto-Regular.ttf --no-progress --output docs/examples/example-fast-grid.svg

@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use fontdue::{Font, FontSettings};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -7,17 +7,17 @@ pub fn font_family_name(font: &Font) -> String {
 	font.name().unwrap_or("Unknown").to_string()
 }
 
-pub fn load_font_from_file<P: AsRef<Path>>(path: P) -> Result<Font, CharCloudError> {
+pub fn load_font_from_file<P: AsRef<Path>>(path: P) -> Result<Font, GlyphWeaveError> {
 	let path_ref = path.as_ref();
 	let font_data = std::fs::read(path_ref).map_err(|err| {
-		CharCloudError::FontLoad(format!(
+		GlyphWeaveError::FontLoad(format!(
 			"failed to read font '{}': {err}",
 			path_ref.display()
 		))
 	})?;
 
 	Font::from_bytes(font_data, FontSettings::default()).map_err(|err| {
-		CharCloudError::FontLoad(format!(
+		GlyphWeaveError::FontLoad(format!(
 			"failed to parse font '{}': {err}",
 			path_ref.display()
 		))
@@ -44,14 +44,14 @@ pub fn discover_system_font_candidates() -> Vec<PathBuf> {
 	candidates
 }
 
-pub fn load_system_font() -> Result<(Font, PathBuf), CharCloudError> {
+pub fn load_system_font() -> Result<(Font, PathBuf), GlyphWeaveError> {
 	let candidates = discover_system_font_candidates();
 	load_system_font_from_candidates(&candidates)
 }
 
 pub fn load_system_font_from_candidates(
 	candidates: &[PathBuf],
-) -> Result<(Font, PathBuf), CharCloudError> {
+) -> Result<(Font, PathBuf), GlyphWeaveError> {
 	let mut parse_failures = 0usize;
 
 	for path in candidates {
@@ -62,30 +62,30 @@ pub fn load_system_font_from_candidates(
 	}
 
 	if candidates.is_empty() {
-		return Err(CharCloudError::FontLoad(
+		return Err(GlyphWeaveError::FontLoad(
 			"no system font candidates found; provide --font <path> or enable embedded_fonts feature"
 				.to_string(),
 		));
 	}
 
-	Err(CharCloudError::FontLoad(format!(
+	Err(GlyphWeaveError::FontLoad(format!(
 		"found {} system font candidates, but none could be parsed ({parse_failures} failures); provide --font <path>",
 		candidates.len()
 	)))
 }
 
 #[cfg(feature = "embedded_fonts")]
-pub fn load_default_embedded_font() -> Result<Font, CharCloudError> {
+pub fn load_default_embedded_font() -> Result<Font, GlyphWeaveError> {
 	Font::from_bytes(
 		crate::embedded_fonts::NOTO_SANS_SC_REGULAR,
 		FontSettings::default(),
 	)
-	.map_err(|err| CharCloudError::FontLoad(format!("failed to parse embedded font: {err}")))
+	.map_err(|err| GlyphWeaveError::FontLoad(format!("failed to parse embedded font: {err}")))
 }
 
 #[cfg(not(feature = "embedded_fonts"))]
-pub fn load_default_embedded_font() -> Result<Font, CharCloudError> {
-	Err(CharCloudError::FontLoad(
+pub fn load_default_embedded_font() -> Result<Font, GlyphWeaveError> {
+	Err(GlyphWeaveError::FontLoad(
 		"no font provided and embedded_fonts feature is disabled".to_string(),
 	))
 }

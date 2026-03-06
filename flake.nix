@@ -1,5 +1,5 @@
 {
-	description = "Char Cloud - 文字云生成工具";
+	description = "GlyphWeave - text-based word cloud and mosaic generator";
 
 	inputs = {
 		nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -21,7 +21,7 @@
 				rustToolchain = pkgs.rust-bin.stable.latest.default;
 
 				buildCommon = targetName: {
-					pname = "char-cloud";
+					pname = "glyphweave";
 					version = "0.1.0";
 					src = ./.;
 					cargoLock = {
@@ -31,14 +31,14 @@
 					nativeBuildInputs = [ pkgs.pkg-config ];
 					meta = with pkgs.lib; {
 						description = "A CLI tool for generating custom shape word clouds";
-						homepage = "https://github.com/yourusername/char-cloud";
+						homepage = "https://github.com/Acture/GlyphWeave";
 						license = licenses.agpl3Only;
 						maintainers = [ "Acture <acturea@gmail.com>" ];
-						mainProgram = "char-cloud-${targetName}";
+						mainProgram = "glyphweave-${targetName}";
 					};
 					installPhase = ''
 						mkdir -p $out/bin
-						cp target/*/release/char-cloud $out/bin/char-cloud-${targetName}
+						cp target/*/release/glyphweave $out/bin/glyphweave-${targetName}
 					'';
 				};
 
@@ -78,7 +78,7 @@
 					x86_64-macos = mkBuild { config = "x86_64-apple-darwin"; } "x86_64-macos";
 					aarch64-macos = mkBuild { config = "aarch64-apple-darwin"; } "aarch64-macos";
 					all = pkgs.symlinkJoin {
-						name = "char-cloud-all";
+						name = "glyphweave-all";
 						paths = [
 						  ./aarch64-linux
 						  ./wasm

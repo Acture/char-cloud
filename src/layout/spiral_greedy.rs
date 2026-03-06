@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::layout::common::{
 	Rect, create_progress_bar, descending_font_sizes, finish_progress, is_area_available,
 	occupy_area, pick_color, pick_weighted_word, placement, total_area, update_progress,
@@ -16,11 +16,11 @@ impl LayoutStrategy for SpiralGreedyStrategy {
 		&self,
 		request: &LayoutRequest<'_>,
 		rng: &mut dyn RngCore,
-	) -> Result<LayoutResult, CharCloudError> {
+	) -> Result<LayoutResult, GlyphWeaveError> {
 		let mut mask = request.mask.clone();
 		let total_usable_area = total_area(&mask);
 		if total_usable_area == 0 {
-			return Err(CharCloudError::Generation(
+			return Err(GlyphWeaveError::Generation(
 				"shape mask has no usable area".to_string(),
 			));
 		}

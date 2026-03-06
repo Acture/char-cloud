@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum CharCloudError {
+pub enum GlyphWeaveError {
 	#[error("invalid configuration: {0}")]
 	InvalidConfig(String),
 

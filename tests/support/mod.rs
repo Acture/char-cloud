@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use char_cloud::{
+use glyphweave::{
 	AlgorithmKind, CanvasConfig, CloudRequest, CloudResult, FontSizeSpec, RenderOptions, Rotation,
 	ShapeConfig, StyleConfig, WordEntry, generate, load_default_embedded_font, load_font_from_file,
 	mask::{build_shape_mask, calculate_auto_font_size, calculate_text_size},

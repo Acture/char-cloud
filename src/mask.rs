@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::core::model::{CanvasConfig, Rotation};
 use fontdue::Font;
 use image::{ImageBuffer, Rgba};
@@ -142,7 +142,7 @@ pub fn mask_to_image(mask: &Array2<bool>) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
 	image
 }
 
-pub fn save_mask_image(mask: &Array2<bool>, path: &Path) -> Result<(), CharCloudError> {
+pub fn save_mask_image(mask: &Array2<bool>, path: &Path) -> Result<(), GlyphWeaveError> {
 	let image = mask_to_image(mask);
 	image.save(path)?;
 	Ok(())

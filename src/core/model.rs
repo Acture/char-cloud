@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use fontdue::Font;
 use std::ops::RangeInclusive;
 use std::path::PathBuf;
@@ -122,9 +122,9 @@ pub struct CloudRequest {
 }
 
 impl CloudRequest {
-	pub fn validate(&self) -> Result<(), CharCloudError> {
+	pub fn validate(&self) -> Result<(), GlyphWeaveError> {
 		if self.canvas.width == 0 || self.canvas.height == 0 {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"canvas width/height must be greater than 0".to_string(),
 			));
 		}
@@ -132,31 +132,31 @@ impl CloudRequest {
 		if self.canvas.margin * 2 >= self.canvas.width
 			|| self.canvas.margin * 2 >= self.canvas.height
 		{
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"canvas margin is too large for the configured canvas size".to_string(),
 			));
 		}
 
 		if self.words.is_empty() {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"at least one word is required".to_string(),
 			));
 		}
 
 		if self.shape.text.trim().is_empty() {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"shape text must not be empty".to_string(),
 			));
 		}
 
 		if !(0.0..=1.0).contains(&self.ratio_threshold) {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"ratio threshold must be between 0.0 and 1.0".to_string(),
 			));
 		}
 
 		if self.max_try_count == 0 {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"max_try_count must be greater than 0".to_string(),
 			));
 		}
@@ -164,25 +164,25 @@ impl CloudRequest {
 		let min_size = *self.style.font_size_range.start();
 		let max_size = *self.style.font_size_range.end();
 		if min_size == 0 || min_size > max_size {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"font_size_range must be valid and greater than 0".to_string(),
 			));
 		}
 
 		if self.style.colors.is_empty() {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"at least one color is required".to_string(),
 			));
 		}
 
 		if self.style.rotations.is_empty() {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"at least one rotation is required".to_string(),
 			));
 		}
 
 		if self.words.iter().any(|w| w.text.trim().is_empty()) {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"word list contains empty entries".to_string(),
 			));
 		}

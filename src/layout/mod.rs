@@ -5,7 +5,7 @@ mod random_baseline;
 mod simulated_annealing;
 mod spiral_greedy;
 
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::core::model::{AlgorithmKind, CloudPlacement, StyleConfig, WordEntry};
 use fontdue::Font;
 use ndarray::Array2;
@@ -40,7 +40,7 @@ pub trait LayoutStrategy {
 		&self,
 		request: &LayoutRequest<'_>,
 		rng: &mut dyn RngCore,
-	) -> Result<LayoutResult, CharCloudError>;
+	) -> Result<LayoutResult, GlyphWeaveError>;
 }
 
 pub fn strategy_for(kind: AlgorithmKind) -> Box<dyn LayoutStrategy> {

@@ -29,7 +29,7 @@
 - No intermediate mask file is written by default.
 - Library API is now first-class (`src/lib.rs`, `generate`).
 - Exit codes are now typed by error category.
-- Added layered config loading (`~/.config/char-cloud/config.toml` -> `.char-cloud.toml` -> `--config` -> CLI args).
+- Added layered config loading (`~/.config/glyphweave/config.toml` -> `.glyphweave.toml` -> `--config` -> CLI args).
 - Embedded Noto Sans SC moved behind `embedded_fonts` feature gate (no longer enabled by default).
 - CLI font resolution order is now: `--font` > embedded font (`embedded_fonts`) > auto-discovered system font.
 

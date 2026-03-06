@@ -228,26 +228,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9555578bc9e57714c812a1f84e4fc5b4d21fcb063490c624de019f7464c91268"
 
 [[package]]
-name = "char-cloud"
-version = "0.2.0"
-dependencies = [
- "clap",
- "criterion",
- "env_logger",
- "fontdue",
- "image",
- "indicatif",
- "log",
- "ndarray",
- "rand 0.9.1",
- "serde",
- "svg",
- "tempfile",
- "thiserror",
- "toml",
-]
-
-[[package]]
 name = "ciborium"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -574,6 +554,26 @@ checksum = "3fb2d69b19215e18bb912fa30f7ce15846e301408695e44e0ef719f1da9e19f2"
 dependencies = [
  "color_quant",
  "weezl",
+]
+
+[[package]]
+name = "glyphweave"
+version = "0.2.0"
+dependencies = [
+ "clap",
+ "criterion",
+ "env_logger",
+ "fontdue",
+ "image",
+ "indicatif",
+ "log",
+ "ndarray",
+ "rand 0.9.1",
+ "serde",
+ "svg",
+ "tempfile",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]

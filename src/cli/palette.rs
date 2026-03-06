@@ -1,15 +1,15 @@
 use crate::cli::args::PaletteKind;
-use char_cloud::core::error::CharCloudError;
+use glyphweave::core::error::GlyphWeaveError;
 
 pub fn resolve_colors(
 	explicit_colors: Option<Vec<String>>,
 	palette_kind: PaletteKind,
 	palette_base: &str,
 	palette_size: usize,
-) -> Result<Vec<String>, CharCloudError> {
+) -> Result<Vec<String>, GlyphWeaveError> {
 	if let Some(colors) = explicit_colors {
 		if colors.is_empty() {
-			return Err(CharCloudError::InvalidConfig(
+			return Err(GlyphWeaveError::InvalidConfig(
 				"--colors provided but empty".to_string(),
 			));
 		}
@@ -23,7 +23,7 @@ pub fn generate_palette(
 	kind: PaletteKind,
 	base_hex: &str,
 	size: usize,
-) -> Result<Vec<String>, CharCloudError> {
+) -> Result<Vec<String>, GlyphWeaveError> {
 	let size = size.max(1);
 
 	match kind {
@@ -110,28 +110,28 @@ fn repeat_palette(colors: &[&str], size: usize) -> Vec<String> {
 	out
 }
 
-fn parse_hex_color(input: &str) -> Result<(u8, u8, u8), CharCloudError> {
+fn parse_hex_color(input: &str) -> Result<(u8, u8, u8), GlyphWeaveError> {
 	let text = input.trim();
 	let clean = text.strip_prefix('#').unwrap_or(text);
 
 	if clean.len() != 6 {
-		return Err(CharCloudError::InvalidConfig(format!(
+		return Err(GlyphWeaveError::InvalidConfig(format!(
 			"invalid palette base color '{input}', expected #RRGGBB"
 		)));
 	}
 
 	let r = u8::from_str_radix(&clean[0..2], 16).map_err(|_| {
-		CharCloudError::InvalidConfig(format!(
+		GlyphWeaveError::InvalidConfig(format!(
 			"invalid palette base color '{input}', expected #RRGGBB"
 		))
 	})?;
 	let g = u8::from_str_radix(&clean[2..4], 16).map_err(|_| {
-		CharCloudError::InvalidConfig(format!(
+		GlyphWeaveError::InvalidConfig(format!(
 			"invalid palette base color '{input}', expected #RRGGBB"
 		))
 	})?;
 	let b = u8::from_str_radix(&clean[4..6], 16).map_err(|_| {
-		CharCloudError::InvalidConfig(format!(
+		GlyphWeaveError::InvalidConfig(format!(
 			"invalid palette base color '{input}', expected #RRGGBB"
 		))
 	})?;

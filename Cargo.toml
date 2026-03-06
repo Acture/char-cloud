@@ -1,24 +1,24 @@
 [package]
-name = "char-cloud"
+name = "glyphweave"
 autobins = false
 version = "0.2.0"
 edition = "2024"
 authors = ["Acture <acturea@gmail.com>"]
-description = "Fast Rust CLI and library for bold, shape-constrained SVG word clouds."
-documentation = "https://docs.rs/char-cloud"
+description = "Shape-constrained SVG word clouds, built for speed. Fast Rust CLI + library."
+documentation = "https://docs.rs/glyphweave"
 readme = "README.md"
-repository = "https://github.com/acture/char-cloud"
+repository = "https://github.com/Acture/GlyphWeave"
 license = "AGPL-3.0"
 categories = ["command-line-utilities"]
 keywords = ["wordcloud", "svg", "cli", "visualization", "layout"]
 
 [lib]
-name = "char_cloud"
+name = "glyphweave"
 path = "src/lib.rs"
 
 [[bin]]
-name = "char-cloud"
-path = "src/bin/char-cloud.rs"
+name = "glyphweave"
+path = "src/bin/glyphweave.rs"
 
 [[bench]]
 name = "layout_bench"

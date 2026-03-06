@@ -1,12 +1,12 @@
-# Char Cloud
+# GlyphWeave
 
-[![Crates.io](https://img.shields.io/crates/v/char-cloud)](https://crates.io/crates/char-cloud)
-[![Release Build](https://github.com/Acture/char-cloud/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/char-cloud/actions/workflows/release.yml)
-[![License](https://img.shields.io/crates/l/char-cloud)](LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/glyphweave)](https://crates.io/crates/glyphweave)
+[![Release Build](https://github.com/Acture/GlyphWeave/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/GlyphWeave/actions/workflows/release.yml)
+[![License](https://img.shields.io/crates/l/glyphweave)](LICENSE)
 
 ## Shape-constrained SVG word clouds, built for speed.
 
-Char Cloud is a Rust CLI + library for generating bold SVG word clouds inside text and shape masks with multiple layout engines, reproducible runs, and palette control.
+GlyphWeave is a fast Rust CLI + library for generating bold SVG word clouds inside text and shape masks with multiple layout engines, reproducible runs, and palette control.
 
 - Fast by default
 - Visual by design
@@ -39,19 +39,19 @@ bash docs/examples/generate.sh
 ## Install
 
 ```bash
-cargo install char-cloud
+cargo install glyphweave
 ```
 
 Optional: include embedded Noto Sans SC at build time.
 
 ```bash
-cargo install char-cloud --features embedded_fonts
+cargo install glyphweave --features embedded_fonts
 ```
 
 ## Quick Start
 
 ```bash
-char-cloud \
+glyphweave \
   --text "RUST" \
   --words "cloud,speed,layout,mask,svg,grid" \
   --canvas-size 1400,800 \
@@ -73,13 +73,13 @@ svg
 ```
 
 ```bash
-char-cloud --text "AI" --word-file words.txt --algorithm spiral-greedy --rotations 0,90 --output ai.svg
+glyphweave --text "AI" --word-file words.txt --algorithm spiral-greedy --rotations 0,90 --output ai.svg
 ```
 
 Show all flags:
 
 ```bash
-char-cloud --help
+glyphweave --help
 ```
 
 ## Use Cases
@@ -91,7 +91,7 @@ char-cloud --help
 ## Library Example
 
 ```rust
-use char_cloud::{
+use glyphweave::{
 	generate, load_font_from_file, AlgorithmKind, CanvasConfig, CloudRequest, FontSizeSpec,
 	RenderOptions, ShapeConfig, StyleConfig, WordEntry,
 };
@@ -137,8 +137,8 @@ std::fs::write("cloud.svg", result.svg)?;
 
 Config precedence (later overrides earlier):
 
-1. `~/.config/char-cloud/config.toml` (or `$XDG_CONFIG_HOME/char-cloud/config.toml`)
-2. `.char-cloud.toml` in current directory
+1. `~/.config/glyphweave/config.toml` (or `$XDG_CONFIG_HOME/glyphweave/config.toml`)
+2. `.glyphweave.toml` in current directory
 3. `--config <path>`
 4. CLI flags
 

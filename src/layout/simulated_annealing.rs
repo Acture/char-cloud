@@ -1,4 +1,4 @@
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::layout::common::{
 	apply_candidate, available_positions, candidate_quality, create_progress_bar, finish_progress,
 	pick_color, random_unit_f32, sample_candidate, total_area, update_progress,
@@ -19,11 +19,11 @@ impl LayoutStrategy for SimulatedAnnealingStrategy {
 		&self,
 		request: &LayoutRequest<'_>,
 		rng: &mut dyn RngCore,
-	) -> Result<LayoutResult, CharCloudError> {
+	) -> Result<LayoutResult, GlyphWeaveError> {
 		let mut mask = request.mask.clone();
 		let total_usable_area = total_area(&mask);
 		if total_usable_area == 0 {
-			return Err(CharCloudError::Generation(
+			return Err(GlyphWeaveError::Generation(
 				"shape mask has no usable area".to_string(),
 			));
 		}

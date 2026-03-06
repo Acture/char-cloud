@@ -1,4 +1,4 @@
-use char_cloud::{
+use glyphweave::{
 	AlgorithmKind, CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, Rotation, ShapeConfig,
 	StyleConfig, WordEntry, generate, load_default_embedded_font, load_font_from_file,
 	rotations_from_degrees,

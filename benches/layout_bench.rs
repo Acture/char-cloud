@@ -1,8 +1,8 @@
-use char_cloud::{
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use glyphweave::{
 	AlgorithmKind, CanvasConfig, CloudRequest, FontSizeSpec, RenderOptions, ShapeConfig,
 	StyleConfig, WordEntry, generate, load_default_embedded_font,
 };
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use std::sync::Arc;
 
 fn bench_layouts(c: &mut Criterion) {
@@ -41,7 +41,7 @@ fn bench_layouts(c: &mut Criterion) {
 						font_size_range: 12..=28,
 						padding: 0,
 						colors: vec!["#111111".to_string(), "#2277aa".to_string()],
-						rotations: vec![char_cloud::core::model::Rotation::Deg0],
+						rotations: vec![glyphweave::core::model::Rotation::Deg0],
 					},
 					algorithm,
 					ratio_threshold: 0.75,

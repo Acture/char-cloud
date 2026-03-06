@@ -1,6 +1,6 @@
 mod support;
 
-use char_cloud::AlgorithmKind;
+use glyphweave::AlgorithmKind;
 use std::fs;
 use std::path::PathBuf;
 use support::{assert_placement_constraints, build_request, generate_normalized};

@@ -1,6 +1,6 @@
-use char_cloud::core::error::CharCloudError;
-use char_cloud::core::model::{AlgorithmKind, FontSizeSpec, WordEntry};
 use clap::{Parser, ValueEnum};
+use glyphweave::core::error::GlyphWeaveError;
+use glyphweave::core::model::{AlgorithmKind, FontSizeSpec, WordEntry};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -158,7 +158,7 @@ impl PaletteKind {
 	}
 }
 
-pub fn collect_words(args: &CliArgs) -> Result<Vec<WordEntry>, CharCloudError> {
+pub fn collect_words(args: &CliArgs) -> Result<Vec<WordEntry>, GlyphWeaveError> {
 	let mut table: BTreeMap<String, f32> = BTreeMap::new();
 
 	for word in &args.words {
@@ -189,7 +189,7 @@ pub fn collect_words(args: &CliArgs) -> Result<Vec<WordEntry>, CharCloudError> {
 		.collect::<Vec<_>>();
 
 	if words.is_empty() {
-		return Err(CharCloudError::InvalidConfig(
+		return Err(GlyphWeaveError::InvalidConfig(
 			"no words provided: use --words or --word-file".to_string(),
 		));
 	}
@@ -197,7 +197,7 @@ pub fn collect_words(args: &CliArgs) -> Result<Vec<WordEntry>, CharCloudError> {
 	Ok(words)
 }
 
-pub fn parse_word_file(path: &Path) -> Result<Vec<(String, f32)>, CharCloudError> {
+pub fn parse_word_file(path: &Path) -> Result<Vec<(String, f32)>, GlyphWeaveError> {
 	let content = std::fs::read_to_string(path)?;
 	let mut out = Vec::new();
 
@@ -208,7 +208,7 @@ pub fn parse_word_file(path: &Path) -> Result<Vec<(String, f32)>, CharCloudError
 		}
 
 		let Some((word, weight)) = parse_word_line(line) else {
-			return Err(CharCloudError::InvalidConfig(format!(
+			return Err(GlyphWeaveError::InvalidConfig(format!(
 				"invalid word format in {} at line {}: '{line}'",
 				path.display(),
 				index + 1

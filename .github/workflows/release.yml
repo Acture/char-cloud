@@ -128,7 +128,7 @@ jobs:
           lfs: true
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
-          bin: char-cloud
+          bin: glyphweave
           target: ${{ matrix.target }}
           checksum: sha256
           tar: unix
@@ -189,24 +189,30 @@ jobs:
       - name: Update formula with current release
         run: |
           set -euo pipefail
-          formula="tap/Formula/char-cloud.rb"
+          formula="tap/Formula/glyphweave.rb"
+          legacy_formula="tap/Formula/char-cloud.rb"
           source_url="https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${RELEASE_TAG}.tar.gz"
-          curl -fsSL "${source_url}" -o /tmp/char-cloud-src.tar.gz
-          source_sha256="$(sha256sum /tmp/char-cloud-src.tar.gz | awk '{print $1}')"
+          if [[ ! -f "${formula}" && -f "${legacy_formula}" ]]; then
+            mv "${legacy_formula}" "${formula}"
+          fi
+          curl -fsSL "${source_url}" -o /tmp/glyphweave-src.tar.gz
+          source_sha256="$(sha256sum /tmp/glyphweave-src.tar.gz | awk '{print $1}')"
 
+          sed -i -E "s#^class .+ < Formula#class Glyphweave < Formula#" "${formula}"
           sed -i -E "s#^  url \".*\"#  url \"${source_url}\"#" "${formula}"
           sed -i -E "s#^  sha256 \".*\"#  sha256 \"${source_sha256}\"#" "${formula}"
+          sed -i -E "s#bin/\"[^\"]+\"#bin/\"glyphweave\"#" "${formula}"
 
       - name: Commit and push formula update
         run: |
           set -euo pipefail
           cd tap
-          if git diff --quiet -- Formula/char-cloud.rb; then
+          if git diff --quiet -- Formula/glyphweave.rb Formula/char-cloud.rb; then
             echo "No formula changes detected; skip commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/char-cloud.rb
-          git commit -m "char-cloud ${RELEASE_TAG}"
+          git add -A Formula/glyphweave.rb Formula/char-cloud.rb
+          git commit -m "glyphweave ${RELEASE_TAG}"
           git push

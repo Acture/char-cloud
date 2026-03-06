@@ -6,7 +6,7 @@ pub mod render;
 
 mod embedded_fonts;
 
-use crate::core::error::CharCloudError;
+use crate::core::error::GlyphWeaveError;
 use crate::layout::{LayoutRequest, strategy_for};
 use crate::mask::{build_shape_mask, calculate_auto_font_size, save_mask_image, total_usable_area};
 use rand::SeedableRng;
@@ -22,7 +22,7 @@ pub use crate::font::{
 	load_system_font,
 };
 
-pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError> {
+pub fn generate(request: CloudRequest) -> Result<CloudResult, GlyphWeaveError> {
 	request.validate()?;
 
 	let started_at = Instant::now();
@@ -47,7 +47,7 @@ pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError> {
 
 	let total_area = total_usable_area(&shape_mask);
 	if total_area == 0 {
-		return Err(CharCloudError::Generation(
+		return Err(GlyphWeaveError::Generation(
 			"shape mask is empty; try a different text/font/canvas combination".to_string(),
 		));
 	}
@@ -93,14 +93,14 @@ pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError> {
 	})
 }
 
-pub fn rotations_from_degrees(values: &[u16]) -> Result<Vec<Rotation>, CharCloudError> {
+pub fn rotations_from_degrees(values: &[u16]) -> Result<Vec<Rotation>, GlyphWeaveError> {
 	let mut rotations = Vec::new();
 	for value in values {
 		let rotation = match value {
 			0 => Rotation::Deg0,
 			90 => Rotation::Deg90,
 			_ => {
-				return Err(CharCloudError::InvalidConfig(format!(
+				return Err(GlyphWeaveError::InvalidConfig(format!(
 					"unsupported rotation '{value}', only 0 and 90 are supported"
 				)));
 			}

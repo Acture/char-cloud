@@ -2,14 +2,14 @@
 
 ## Overview
 
-Char Cloud v0.2 splits the project into a reusable library core and a thin CLI wrapper.
+GlyphWeave v0.2 splits the project into a reusable library core and a thin CLI wrapper.
 
 - `src/lib.rs`: public API + generation orchestration
 - `src/core/`: shared models and error types
 - `src/mask.rs`: shape rasterization and mask utilities
 - `src/layout/`: pluggable layout strategies
 - `src/render.rs`: SVG assembly
-- `src/bin/char-cloud.rs`: CLI entrypoint only
+- `src/bin/glyphweave.rs`: CLI entrypoint only
 
 ## Data Flow
 
@@ -40,7 +40,7 @@ This contract keeps algorithms isolated from CLI and rendering concerns.
 
 ## Error Model
 
-All library operations return `Result<_, CharCloudError>`.
+All library operations return `Result<_, GlyphWeaveError>`.
 
 - `InvalidConfig`: request-level validation failures
 - `FontLoad`: font read/parse failures

@@ -1,5 +1,5 @@
 use crate::cli::args::{CliAlgorithm, PaletteKind};
-use char_cloud::core::error::CharCloudError;
+use glyphweave::core::error::GlyphWeaveError;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 
@@ -79,28 +79,28 @@ impl FileConfig {
 		self.word_size_range.map(|size| (size[0], size[1]))
 	}
 
-	pub fn algorithm_enum(&self) -> Result<Option<CliAlgorithm>, CharCloudError> {
+	pub fn algorithm_enum(&self) -> Result<Option<CliAlgorithm>, GlyphWeaveError> {
 		let Some(text) = self.algorithm.as_deref() else {
 			return Ok(None);
 		};
 
 		CliAlgorithm::parse_text(text).map(Some).ok_or_else(|| {
-			CharCloudError::InvalidConfig(format!("invalid algorithm '{text}' in config"))
+			GlyphWeaveError::InvalidConfig(format!("invalid algorithm '{text}' in config"))
 		})
 	}
 
-	pub fn palette_enum(&self) -> Result<Option<PaletteKind>, CharCloudError> {
+	pub fn palette_enum(&self) -> Result<Option<PaletteKind>, GlyphWeaveError> {
 		let Some(text) = self.palette.as_deref() else {
 			return Ok(None);
 		};
 
 		PaletteKind::parse_text(text).map(Some).ok_or_else(|| {
-			CharCloudError::InvalidConfig(format!("invalid palette '{text}' in config"))
+			GlyphWeaveError::InvalidConfig(format!("invalid palette '{text}' in config"))
 		})
 	}
 }
 
-pub fn load_merged_config(explicit_path: Option<&Path>) -> Result<FileConfig, CharCloudError> {
+pub fn load_merged_config(explicit_path: Option<&Path>) -> Result<FileConfig, GlyphWeaveError> {
 	let mut merged = FileConfig::default();
 
 	if let Some(path) = user_config_path()
@@ -110,7 +110,7 @@ pub fn load_merged_config(explicit_path: Option<&Path>) -> Result<FileConfig, Ch
 		merged.merge_from(file);
 	}
 
-	let project = PathBuf::from(".char-cloud.toml");
+	let project = PathBuf::from(".glyphweave.toml");
 	if project.exists() {
 		let file = load_config_file(&project)?;
 		merged.merge_from(file);
@@ -124,13 +124,13 @@ pub fn load_merged_config(explicit_path: Option<&Path>) -> Result<FileConfig, Ch
 	Ok(merged)
 }
 
-fn load_config_file(path: &Path) -> Result<FileConfig, CharCloudError> {
+fn load_config_file(path: &Path) -> Result<FileConfig, GlyphWeaveError> {
 	let content = std::fs::read_to_string(path).map_err(|err| {
-		CharCloudError::InvalidConfig(format!("failed to read config '{}': {err}", path.display()))
+		GlyphWeaveError::InvalidConfig(format!("failed to read config '{}': {err}", path.display()))
 	})?;
 
 	toml::from_str::<FileConfig>(&content).map_err(|err| {
-		CharCloudError::InvalidConfig(format!(
+		GlyphWeaveError::InvalidConfig(format!(
 			"failed to parse config '{}': {err}",
 			path.display()
 		))
@@ -140,7 +140,7 @@ fn load_config_file(path: &Path) -> Result<FileConfig, CharCloudError> {
 fn user_config_path() -> Option<PathBuf> {
 	if let Ok(xdg_home) = std::env::var("XDG_CONFIG_HOME") {
 		let mut path = PathBuf::from(xdg_home);
-		path.push("char-cloud");
+		path.push("glyphweave");
 		path.push("config.toml");
 		return Some(path);
 	}
@@ -151,7 +151,7 @@ fn user_config_path() -> Option<PathBuf> {
 
 	let mut path = PathBuf::from(home);
 	path.push(".config");
-	path.push("char-cloud");
+	path.push("glyphweave");
 	path.push("config.toml");
 	Some(path)
 }

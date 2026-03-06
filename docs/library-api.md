@@ -10,16 +10,16 @@
 ## Entry Point
 
 ```rust
-pub fn generate(request: CloudRequest) -> Result<CloudResult, CharCloudError>
+pub fn generate(request: CloudRequest) -> Result<CloudResult, GlyphWeaveError>
 ```
 
 ## Font Loading Helpers
 
 ```rust
-pub fn load_font_from_file<P: AsRef<Path>>(path: P) -> Result<Font, CharCloudError>
-pub fn load_default_embedded_font() -> Result<Font, CharCloudError>
+pub fn load_font_from_file<P: AsRef<Path>>(path: P) -> Result<Font, GlyphWeaveError>
+pub fn load_default_embedded_font() -> Result<Font, GlyphWeaveError>
 pub fn discover_system_font_candidates() -> Vec<PathBuf>
-pub fn load_system_font() -> Result<(Font, PathBuf), CharCloudError>
+pub fn load_system_font() -> Result<(Font, PathBuf), GlyphWeaveError>
 ```
 
 `load_default_embedded_font()` requires `embedded_fonts` feature.
@@ -27,7 +27,7 @@ pub fn load_system_font() -> Result<(Font, PathBuf), CharCloudError>
 ## Minimal Example
 
 ```rust
-use char_cloud::*;
+use glyphweave::*;
 use std::sync::Arc;
 
 let font = load_font_from_file("fonts/NotoSansSC-Regular.ttf")?;

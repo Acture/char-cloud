@@ -11,7 +11,7 @@ fn cli_generates_svg_file() {
 	let output = dir.path().join("cloud.svg");
 	let font = test_font_path();
 
-	let status = Command::new(env!("CARGO_BIN_EXE_char-cloud"))
+	let status = Command::new(env!("CARGO_BIN_EXE_glyphweave"))
 		.args([
 			"--text",
 			"RUST",
@@ -41,7 +41,7 @@ fn cli_returns_invalid_config_exit_code_when_words_missing() {
 	let output = dir.path().join("missing.svg");
 	let font = test_font_path();
 
-	let result = Command::new(env!("CARGO_BIN_EXE_char-cloud"))
+	let result = Command::new(env!("CARGO_BIN_EXE_glyphweave"))
 		.args(["--text", "RUST", "--font"])
 		.arg(&font)
 		.args(["--no-progress", "--output"])
@@ -61,7 +61,7 @@ fn cli_can_write_debug_mask() {
 	let mask = dir.path().join("mask.png");
 	let font = test_font_path();
 
-	let status = Command::new(env!("CARGO_BIN_EXE_char-cloud"))
+	let status = Command::new(env!("CARGO_BIN_EXE_glyphweave"))
 		.args([
 			"--text",
 			"RUST",
