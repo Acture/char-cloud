@@ -1,3 +1,34 @@
+## [0.2.0] - 2026-03-06
+
+### 🚀 Features
+
+- Refactor project into a reusable library + CLI shell architecture
+- Add pluggable layout strategies with `fast-grid`, `spiral-greedy`, `mcts`, and `simulated-annealing`
+- Add weighted words, configurable rotations, and deterministic generation via seed
+- Add palette strategies (`auto`, `complementary`, `triadic`, `analogous`, `monochrome`, presets)
+- Add feature-gated embedded font support with system font fallback
+
+### 🐛 Bug Fixes
+
+- Correct release workflow tag trigger pattern for v-prefixed tags
+- Improve release workflow compatibility with Git LFS font assets
+
+### 📚 Documentation
+
+- Rewrite README in concise English style and add generated SVG gallery examples
+- Add architecture, API, algorithms, tuning, and migration docs for v0.2
+- Add embedded font license documentation for Noto Sans SC
+
+### 🧪 Testing
+
+- Add snapshot regression tests, config precedence tests, and performance regression checks
+- Expand API/CLI integration coverage for new configuration and algorithm options
+
+### ⚙️ CI
+
+- Add dedicated CI and performance regression workflows
+- Harden release pipeline checks (`fmt`, `clippy`, `tests`) before publishing assets
+
 ## [0.1.2-test] - 2025-08-08
 
 ### 🚀 Features
