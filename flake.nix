@@ -31,7 +31,7 @@
 					nativeBuildInputs = [ pkgs.pkg-config ];
 					meta = with pkgs.lib; {
 						description = "A CLI tool for generating custom shape word clouds";
-						homepage = "https://github.com/Acture/GlyphWeave";
+						homepage = "https://github.com/Acture/glyphweave";
 						license = licenses.agpl3Only;
 						maintainers = [ "Acture <acturea@gmail.com>" ];
 						mainProgram = "glyphweave-${targetName}";

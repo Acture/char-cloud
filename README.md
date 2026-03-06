@@ -1,7 +1,7 @@
 # GlyphWeave
 
 [![Crates.io](https://img.shields.io/crates/v/glyphweave)](https://crates.io/crates/glyphweave)
-[![Release Build](https://github.com/Acture/GlyphWeave/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/GlyphWeave/actions/workflows/release.yml)
+[![Release Build](https://github.com/Acture/glyphweave/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/glyphweave/actions/workflows/release.yml)
 [![License](https://img.shields.io/crates/l/glyphweave)](LICENSE)
 
 ## Shape-constrained SVG word clouds, built for speed.
