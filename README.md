@@ -147,6 +147,24 @@ max_tries = 12000
 rotations = [0, 90]
 ```
 
+## Release Automation
+
+`Release` workflow now supports end-to-end publishing to:
+
+- GitHub Releases (tag-triggered or manual dispatch)
+- crates.io (`cargo publish`)
+- Homebrew tap: `Acture/homebrew-ac` (`Formula/char-cloud.rb`)
+
+Required repository secrets:
+
+- `CARGO_REGISTRY_TOKEN`: crates.io publish token
+- `HOMEBREW_TAP_TOKEN`: PAT with push access to `Acture/homebrew-ac`
+
+Trigger modes:
+
+- Automatic: push a tag like `v0.2.1`
+- Manual: run `Release` workflow with input `tag`, optionally enabling `publish_cargo` and `update_homebrew`
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)
