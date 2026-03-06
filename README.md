@@ -4,18 +4,37 @@
 [![Release Build](https://github.com/Acture/char-cloud/actions/workflows/release.yml/badge.svg)](https://github.com/Acture/char-cloud/actions/workflows/release.yml)
 [![License](https://img.shields.io/crates/l/char-cloud)](LICENSE)
 
-Generate beautiful **shape-constrained SVG word clouds** in seconds.
+## Shape-constrained SVG word clouds, built for speed.
 
-Char Cloud is a **Rust CLI + reusable library** that packs multiple layout algorithms, reproducible output, palette tooling, and configurable font loading into one fast workflow.
+Char Cloud is a Rust CLI + library for generating bold SVG word clouds inside text and shape masks with multiple layout engines, reproducible runs, and palette control.
 
-## Why Char Cloud
+- Fast by default
+- Visual by design
+- CLI + library
 
-- Fast by default: `fast-grid` is tuned for real workloads
-- Better quality options: `mcts`, `simulated-annealing`, `spiral-greedy`
-- Reproducible runs with `--seed`
-- Weighted words, rotation sets, and automatic palettes
-- Global + project config (`TOML`) for repeatable teams and CI
-- CLI for speed, library API for integration
+## Example Gallery
+
+Generated with fixed seeds, `fast-grid`, and `fonts/Roboto-Regular.ttf`.
+
+| RUST (`auto`) | AI (`complementary`) |
+|---|---|
+| ![RUST auto palette](docs/examples/example-fast-grid.svg) | ![AI complementary palette](docs/examples/example-complementary.svg) |
+
+| DATA (`analogous`) | CODE (`vibrant`) |
+|---|---|
+| ![DATA analogous palette](docs/examples/example-analogous.svg) | ![CODE vibrant palette](docs/examples/example-vibrant.svg) |
+
+Reproduce these assets:
+
+```bash
+bash docs/examples/generate.sh
+```
+
+## Why It Feels Different
+
+- Fast layouts out of the box with `fast-grid`, plus `mcts`, `simulated-annealing`, `spiral-greedy`, and `random-baseline`
+- Strong visual control with palette strategies, weighted words, rotations, and SVG output
+- Reproducible runs through `--seed`, config files, and library integration for automation
 
 ## Install
 
@@ -63,35 +82,13 @@ Show all flags:
 char-cloud --help
 ```
 
-## Example Gallery
+## Use Cases
 
-Generated with fixed seeds, `fast-grid`, and `fonts/Roboto-Regular.ttf`.
+- Design assets and posters with text-shaped SVG output that stays easy to post-process
+- Data storytelling visuals where the shape matters as much as the words
+- Scripted and batch generation pipelines through the Rust API or CLI configs
 
-| RUST (`auto`) | AI (`complementary`) |
-|---|---|
-| ![RUST auto palette](docs/examples/example-fast-grid.svg) | ![AI complementary palette](docs/examples/example-complementary.svg) |
-
-| DATA (`analogous`) | CODE (`vibrant`) |
-|---|---|
-| ![DATA analogous palette](docs/examples/example-analogous.svg) | ![CODE vibrant palette](docs/examples/example-vibrant.svg) |
-
-Reproduce these assets:
-
-```bash
-bash docs/examples/generate.sh
-```
-
-## Algorithm Cheat Sheet
-
-| Algorithm | Speed | Fill Quality | Best Use Case |
-|---|---:|---:|---|
-| `fast-grid` | High | High | Default production choice |
-| `mcts` | Medium-Low | High | Search-driven quality improvements |
-| `simulated-annealing` | Medium-Low | Medium-High | Stochastic optimization and exploration |
-| `spiral-greedy` | Medium | Medium-High | Center-focused, stable visual structure |
-| `random-baseline` | Low | Medium | Baseline and regression comparison |
-
-## Library API (Minimal)
+## Library Example
 
 ```rust
 use char_cloud::{
@@ -116,6 +113,16 @@ let result = generate(CloudRequest {
 std::fs::write("cloud.svg", result.svg)?;
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+## Algorithm Cheat Sheet
+
+| Algorithm | Speed | Fill Quality | Best Use Case |
+|---|---:|---:|---|
+| `fast-grid` | High | High | Default production choice |
+| `mcts` | Medium-Low | High | Search-driven quality improvements |
+| `simulated-annealing` | Medium-Low | Medium-High | Stochastic optimization and exploration |
+| `spiral-greedy` | Medium | Medium-High | Center-focused, stable visual structure |
+| `random-baseline` | Low | Medium | Baseline and regression comparison |
 
 ## Fonts
 
@@ -147,25 +154,6 @@ max_tries = 12000
 rotations = [0, 90]
 ```
 
-## Release Automation
-
-`Release` workflow now supports end-to-end publishing to:
-
-- GitHub Releases (tag-triggered or manual dispatch)
-- crates.io (`cargo publish`)
-- Homebrew tap: `Acture/homebrew-ac` (`Formula/char-cloud.rb`)
-
-Required repository secrets:
-
-- `CARGO_REGISTRY_TOKEN`: crates.io publish token
-- `HOMEBREW_TAP_TOKEN`: PAT with push access to `Acture/homebrew-ac`
-
-Trigger modes:
-
-- Automatic: push a tag like `v0.2.1`
-- Manual: run `Release` workflow with input `tag`, optionally enabling `upload_assets`, `publish_cargo`, and `update_homebrew`
-- If you store release credentials as environment secrets, use the `release` environment for the publish jobs
-
 ## Documentation
 
 - [Architecture](docs/architecture.md)
@@ -173,6 +161,14 @@ Trigger modes:
 - [Algorithms](docs/algorithms.md)
 - [Tuning](docs/tuning.md)
 - [Migration v0.2](docs/migration-v0.2.md)
+
+## For Maintainers
+
+The `Release` workflow supports tag-driven and manual publishing to GitHub Releases, crates.io, and the `Acture/homebrew-ac` tap.
+
+- Secrets: `CARGO_REGISTRY_TOKEN`, `HOMEBREW_TAP_TOKEN`
+- Manual inputs: `tag`, `upload_assets`, `publish_cargo`, `update_homebrew`
+- Use the `release` environment if you store publish credentials as environment secrets
 
 ## License
 

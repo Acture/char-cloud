@@ -4,11 +4,13 @@ autobins = false
 version = "0.2.0"
 edition = "2024"
 authors = ["Acture <acturea@gmail.com>"]
-description = "A CLI and library for generating shape-constrained word clouds as SVG."
+description = "Fast Rust CLI and library for bold, shape-constrained SVG word clouds."
+documentation = "https://docs.rs/char-cloud"
 readme = "README.md"
 repository = "https://github.com/acture/char-cloud"
 license = "AGPL-3.0"
-keywords = ["wordcloud", "charcloud", "cli", "svg", "visualization"]
+categories = ["command-line-utilities"]
+keywords = ["wordcloud", "svg", "cli", "visualization", "layout"]
 
 [lib]
 name = "char_cloud"
