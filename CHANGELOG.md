@@ -1,3 +1,19 @@
+## [0.3.0] - 2026-03-06
+
+### 💥 Breaking Changes
+
+- Rename the package, library crate, CLI binary, config paths, and public docs from `char-cloud` to `glyphweave`
+- Standardize all public repository links, badges, and release metadata on `Acture/glyphweave`
+
+### 🚀 Features
+
+- Prepare the first fully branded `glyphweave` release for GitHub, crates.io, docs.rs, and Homebrew
+
+### ⚙️ CI
+
+- Remove legacy `char-cloud` Homebrew formula migration logic from the release workflow
+- Publish future GitHub release assets and tap updates under the `glyphweave` name only
+
 ## [0.2.0] - 2026-03-06
 
 ### 🚀 Features

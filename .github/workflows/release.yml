@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to release (e.g. v0.2.1)"
+        description: "Tag to release (e.g. v0.3.0)"
         required: true
         type: string
       upload_assets:
@@ -190,29 +190,65 @@ jobs:
         run: |
           set -euo pipefail
           formula="tap/Formula/glyphweave.rb"
-          legacy_formula="tap/Formula/char-cloud.rb"
           source_url="https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${RELEASE_TAG}.tar.gz"
-          if [[ ! -f "${formula}" && -f "${legacy_formula}" ]]; then
-            mv "${legacy_formula}" "${formula}"
-          fi
           curl -fsSL "${source_url}" -o /tmp/glyphweave-src.tar.gz
           source_sha256="$(sha256sum /tmp/glyphweave-src.tar.gz | awk '{print $1}')"
+          cat > "${formula}" <<EOF
+          class Glyphweave < Formula
+            desc "Shape-constrained SVG word clouds, built for speed"
+            homepage "https://github.com/${GITHUB_REPOSITORY}"
+            url "${source_url}"
+            sha256 "${source_sha256}"
+            license "AGPL-3.0-only"
 
-          sed -i -E "s#^class .+ < Formula#class Glyphweave < Formula#" "${formula}"
-          sed -i -E "s#^  url \".*\"#  url \"${source_url}\"#" "${formula}"
-          sed -i -E "s#^  sha256 \".*\"#  sha256 \"${source_sha256}\"#" "${formula}"
-          sed -i -E "s#bin/\"[^\"]+\"#bin/\"glyphweave\"#" "${formula}"
+            livecheck do
+              url :stable
+              regex(/^v?(\\d+(?:\\.\\d+)+)$/i)
+            end
+
+            depends_on "rust" => :build
+
+            def install
+              system "cargo", "install", *std_cargo_args
+            end
+
+            test do
+              font = [
+                "/Library/Fonts/NotoSansSC-Regular.ttf",
+                "/Library/Fonts/SourceHanSansSC-Regular.otf",
+                "/System/Library/Fonts/Supplemental/Arial.ttf",
+                "/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf",
+                "/usr/share/fonts/opentype/noto/NotoSansSC-Regular.otf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+              ].find { |path| File.exist?(path) }
+              assert font, "No suitable system font found for glyphweave test"
+
+              (testpath/"words.txt").write("cloud,3\\nsvg,2\\nlayout\\n")
+              output = testpath/"out.svg"
+
+              system bin/"glyphweave", "--text", "AI",
+                                        "--word-file", testpath/"words.txt",
+                                        "--algorithm", "fast-grid",
+                                        "--seed", "7",
+                                        "--font", font,
+                                        "--no-progress",
+                                        "--output", output
+              assert_predicate output, :exist?
+              assert_match "<svg", output.read
+            end
+          end
+          EOF
 
       - name: Commit and push formula update
         run: |
           set -euo pipefail
           cd tap
-          if git diff --quiet -- Formula/glyphweave.rb Formula/char-cloud.rb; then
+          if git diff --quiet -- Formula/glyphweave.rb; then
             echo "No formula changes detected; skip commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A Formula/glyphweave.rb Formula/char-cloud.rb
+          git add -A Formula/glyphweave.rb
           git commit -m "glyphweave ${RELEASE_TAG}"
           git push
